@@ -4,9 +4,22 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp'
 import AssignmentIcon from '@mui/icons-material/Assignment'
 import WarningIcon from '@mui/icons-material/Warning'
 import PieChartIcon from '@mui/icons-material/PieChart'
+import EuroIcon from '@mui/icons-material/Euro'
+import ReceiptIcon from '@mui/icons-material/Receipt'
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet'
+import PeopleIcon from '@mui/icons-material/People'
 import api from '../api/client'
 
-type KPI = { preventivi_mese: number; job_in_corso: number; stock_basso: number; margine_medio_pct: number }
+type KPI = { 
+  preventivi_mese: number
+  job_in_corso: number
+  stock_basso: number
+  margine_medio_pct: number
+  ricavi_mese_eur: number
+  costi_mese_eur: number
+  utile_mese_eur: number
+  clienti_attivi: number
+}
 
 interface KPICardProps {
   label: string
@@ -93,8 +106,38 @@ export default function Dashboard() {
       bgGradient: 'linear-gradient(135deg, #ffffff 0%, #fffbeb 100%)',
     },
     {
+      label: 'Clienti attivi',
+      value: kpi?.clienti_attivi ?? '—',
+      icon: <PeopleIcon sx={{ fontSize: 28 }} />,
+      color: 'info' as const,
+      bgGradient: 'linear-gradient(135deg, #ffffff 0%, #f0f9fa 100%)',
+    },
+    {
+      label: 'Ricavi mese',
+      value: kpi ? `€${kpi.ricavi_mese_eur.toFixed(2)}` : '—',
+      icon: <EuroIcon sx={{ fontSize: 28 }} />,
+      color: 'success' as const,
+      bgGradient: 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)',
+    },
+    {
+      label: 'Costi mese',
+      value: kpi ? `€${kpi.costi_mese_eur.toFixed(2)}` : '—',
+      icon: <ReceiptIcon sx={{ fontSize: 28 }} />,
+      color: 'error' as const,
+      bgGradient: 'linear-gradient(135deg, #ffffff 0%, #fef2f2 100%)',
+    },
+    {
+      label: 'Utile mese',
+      value: kpi ? `€${kpi.utile_mese_eur.toFixed(2)}` : '—',
+      icon: <AccountBalanceWalletIcon sx={{ fontSize: 28 }} />,
+      color: kpi && kpi.utile_mese_eur >= 0 ? 'primary' as const : 'error' as const,
+      bgGradient: kpi && kpi.utile_mese_eur >= 0 
+        ? 'linear-gradient(135deg, #ffffff 0%, #eff6ff 100%)'
+        : 'linear-gradient(135deg, #ffffff 0%, #fef2f2 100%)',
+    },
+    {
       label: 'Margine medio',
-      value: kpi ? `${kpi.margine_medio_pct}%` : '—',
+      value: kpi ? `${kpi.margine_medio_pct.toFixed(1)}%` : '—',
       icon: <PieChartIcon sx={{ fontSize: 28 }} />,
       color: 'info' as const,
       bgGradient: 'linear-gradient(135deg, #ffffff 0%, #f0f9fa 100%)',
@@ -113,7 +156,7 @@ export default function Dashboard() {
       </Box>
       <Grid container spacing={3}>
         {items.map((it) => (
-          <Grid item xs={12} sm={6} md={3} key={it.label}>
+          <Grid item xs={12} sm={6} md={6} lg={3} key={it.label}>
             <KPICard {...it} />
           </Grid>
         ))}
