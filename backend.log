@@ -1,0 +1,34 @@
+backend-1  | [backend] running migrations...
+backend-1  | Traceback (most recent call last):
+backend-1  |   File "/usr/local/bin/alembic", line 8, in <module>
+backend-1  |     sys.exit(main())
+backend-1  |              ^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/alembic/config.py", line 636, in main
+backend-1  |     CommandLine(prog=prog).main(argv=argv)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/alembic/config.py", line 626, in main
+backend-1  |     self.run_cmd(cfg, options)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/alembic/config.py", line 603, in run_cmd
+backend-1  |     fn(
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/alembic/command.py", line 406, in upgrade
+backend-1  |     script.run_env()
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/alembic/script/base.py", line 586, in run_env
+backend-1  |     util.load_python_file(self.dir, "env.py")
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/alembic/util/pyfiles.py", line 95, in load_python_file
+backend-1  |     module = load_module_py(module_id, path)
+backend-1  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/alembic/util/pyfiles.py", line 113, in load_module_py
+backend-1  |     spec.loader.exec_module(module)  # type: ignore
+backend-1  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+backend-1  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+backend-1  |   File "/app/alembic/env.py", line 11, in <module>
+backend-1  |     from app.models import user, location, inventory, customer, quote, job, costs, audit  # noqa: F401
+backend-1  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/app/app/models/__init__.py", line 5, in <module>
+backend-1  |     from app.models.quote import Quote, QuoteVersion, QuoteLine
+backend-1  |   File "/app/app/models/quote.py", line 28, in <module>
+backend-1  |     class QuoteVersion(Base, TimestampMixin, AuditUserMixin):
+backend-1  |   File "/app/app/models/quote.py", line 34, in QuoteVersion
+backend-1  |     status: Mapped[QuoteStatus] = mapped_column(Enum(QuoteStatus), default=QuoteStatus.bozza)
+backend-1  |                                                                            ^^^^^^^^^^^^^^^^^
+backend-1  | AttributeError: type object 'QuoteStatus' has no attribute 'bozza'

@@ -1,0 +1,178 @@
+import React from 'react'
+import {
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from '@mui/material'
+import api from '../api/client'
+import { Filament, Job } from '../api/types'
+import { useAuth } from '../components/AuthProvider'
+
+const statusOptions = ['PIANIFICATO', 'IN_CORSO', 'COMPLETATO', 'ANNULLATO']
+
+export default function JobPage() {
+  const { user } = useAuth()
+  const canWrite = user?.role === 'ADMIN' || user?.role === 'OPERATORE'
+  const [rows, setRows] = React.useState<Job[]>([])
+  const [filaments, setFilaments] = React.useState<Filament[]>([])
+
+  const load = () => api.get('/api/v1/jobs/').then((r) => setRows(r.data))
+  const loadFil = () => api.get('/api/v1/filaments/').then((r) => setFilaments(r.data))
+
+  React.useEffect(() => {
+    void load()
+    void loadFil()
+  }, [])
+
+  // edit
+  const [openEdit, setOpenEdit] = React.useState(false)
+  const [editing, setEditing] = React.useState<Job | null>(null)
+  const [form, setForm] = React.useState<any>({})
+
+  const onEdit = (j: Job) => {
+    setEditing(j)
+    setForm({ status: j.status, tempo_reale_min: j.tempo_reale_min, energia_kwh: j.energia_kwh, scarti_g: j.scarti_g, note: j.note })
+    setOpenEdit(true)
+  }
+  const onSave = async () => {
+    if (!editing) return
+    await api.put(`/api/v1/jobs/${editing.id}/`, form)
+    setOpenEdit(false)
+    await load()
+  }
+
+  // consumption
+  const [openCons, setOpenCons] = React.useState(false)
+  const [consJob, setConsJob] = React.useState<Job | null>(null)
+  const [consFil, setConsFil] = React.useState<number | ''>('')
+  const [consG, setConsG] = React.useState(0)
+  const addCons = async () => {
+    if (!consJob) return
+    await api.post(`/api/v1/jobs/${consJob.id}/consumi/`, { filament_id: Number(consFil), peso_g: consG })
+    setOpenCons(false)
+    await load()
+  }
+
+  const chipColor = (s: string) => {
+    if (s === 'COMPLETATO') return 'success'
+    if (s === 'IN_CORSO') return 'info'
+    if (s === 'ANNULLATO') return 'error'
+    return 'default'
+  }
+
+  return (
+    <>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+        <Typography variant="h5">Job</Typography>
+      </Stack>
+
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell>ID</TableCell>
+            <TableCell>Stato</TableCell>
+            <TableCell align="right">Tempo (min)</TableCell>
+            <TableCell align="right">Costo finale</TableCell>
+            <TableCell align="right">Margine</TableCell>
+            <TableCell align="right" />
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {rows.map((r) => (
+            <TableRow key={r.id} hover>
+              <TableCell>{r.id}</TableCell>
+              <TableCell>
+                <Chip label={r.status} color={chipColor(r.status) as any} size="small" />
+              </TableCell>
+              <TableCell align="right">{r.tempo_reale_min}</TableCell>
+              <TableCell align="right">€ {r.costo_finale_eur.toFixed(2)}</TableCell>
+              <TableCell align="right">€ {r.margine_eur.toFixed(2)}</TableCell>
+              <TableCell align="right">
+                {canWrite && (
+                  <>
+                    <Button size="small" onClick={() => onEdit(r)}>
+                      Modifica
+                    </Button>
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        setConsJob(r)
+                        setConsFil('')
+                        setConsG(0)
+                        setOpenCons(true)
+                      }}
+                    >
+                      Consumo
+                    </Button>
+                  </>
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+
+
+      <Dialog open={openEdit} onClose={() => setOpenEdit(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Modifica Job</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'grid', gap: 2, mt: 1, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
+            <TextField select label="Stato" value={form.status || 'PIANIFICATO'} onChange={(e) => setForm((s: any) => ({ ...s, status: e.target.value }))}>
+              {statusOptions.map((s) => (
+                <MenuItem key={s} value={s}>
+                  {s}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField label="Tempo reale (min)" type="number" value={form.tempo_reale_min ?? 0} onChange={(e) => setForm((s: any) => ({ ...s, tempo_reale_min: Number(e.target.value) }))} />
+            <TextField label="Energia (kWh)" type="number" value={form.energia_kwh ?? 0} onChange={(e) => setForm((s: any) => ({ ...s, energia_kwh: Number(e.target.value) }))} />
+            <TextField label="Scarti (g)" type="number" value={form.scarti_g ?? 0} onChange={(e) => setForm((s: any) => ({ ...s, scarti_g: Number(e.target.value) }))} />
+            <TextField label="Note" value={form.note || ''} onChange={(e) => setForm((s: any) => ({ ...s, note: e.target.value }))} sx={{ gridColumn: { md: '1 / -1' } }} multiline minRows={2} />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenEdit(false)}>Annulla</Button>
+          <Button variant="contained" onClick={onSave}>
+            Salva
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={openCons} onClose={() => setOpenCons(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Aggiungi consumo</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'grid', gap: 2, mt: 1 }}>
+            <TextField select label="Filamento" value={consFil} onChange={(e) => setConsFil(e.target.value as any)}>
+              {filaments.map((f) => (
+                <MenuItem key={f.id} value={f.id}>
+                  {f.materiale} {f.marca} {f.colore}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField label="Peso (g)" type="number" value={consG} onChange={(e) => setConsG(Number(e.target.value))} />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenCons(false)}>Annulla</Button>
+          <Button variant="contained" onClick={addCons} disabled={!consFil}>
+            Aggiungi
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  )
+}
