@@ -1,5 +1,6 @@
 import enum
-from sqlalchemy import Enum, ForeignKey, Integer, Numeric, String, Text
+from datetime import date
+from sqlalchemy import Date, Enum, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -13,6 +14,14 @@ class MovementType(str, enum.Enum):
     rettifica = "RETTIFICA"
 
 
+class FilamentStatus(str, enum.Enum):
+    disponibile = "DISPONIBILE"
+    in_uso = "IN_USO"
+    finito = "FINITO"
+    secco = "SECCO"
+    da_asciugare = "DA_ASCIUGARE"
+
+
 class Filament(Base, TimestampMixin, AuditUserMixin):
     __tablename__ = "filaments"
 
@@ -20,15 +29,23 @@ class Filament(Base, TimestampMixin, AuditUserMixin):
     materiale: Mapped[str] = mapped_column(String(50))
     marca: Mapped[str] = mapped_column(String(100), default="")
     colore: Mapped[str] = mapped_column(String(100), default="")
+    colore_hex: Mapped[str] = mapped_column(String(7), default="")
     diametro_mm: Mapped[float] = mapped_column(Numeric(4, 2), default=1.75)
     peso_nominale_g: Mapped[int] = mapped_column(Integer, default=1000)
     costo_spool_eur: Mapped[float] = mapped_column(Numeric(10, 2), default=0)
     note: Mapped[str] = mapped_column(Text, default="")
     peso_residuo_g: Mapped[int] = mapped_column(Integer, default=0)
     soglia_min_g: Mapped[int] = mapped_column(Integer, default=100)
+    stato: Mapped[str] = mapped_column(String(20), default=FilamentStatus.disponibile.value)
+    data_acquisto: Mapped[date | None] = mapped_column(Date, nullable=True)
 
     ubicazione_id: Mapped[int | None] = mapped_column(ForeignKey("locations.id"), nullable=True)
     ubicazione = relationship("Location", back_populates="filamenti")
+
+    @property
+    def stato_enum(self) -> FilamentStatus:
+        """Return the FilamentStatus for the current string value."""
+        return FilamentStatus(self.stato)
 
 
 class InventoryMovement(Base, TimestampMixin, AuditUserMixin):

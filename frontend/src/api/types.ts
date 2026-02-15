@@ -11,11 +11,14 @@ export interface Filament {
   materiale: string
   marca: string
   colore: string
+  colore_hex: string
   diametro_mm: number
   peso_nominale_g: number
   costo_spool_eur: number
   peso_residuo_g: number
   soglia_min_g: number
+  stato: string
+  data_acquisto: string | null
   note: string
   ubicazione_id: number | null
 }

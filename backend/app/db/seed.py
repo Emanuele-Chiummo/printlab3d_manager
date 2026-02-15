@@ -64,22 +64,26 @@ def seed_if_empty(db: Session) -> None:
         materiale="PLA",
         marca="Sunlu",
         colore="Bianco",
+        colore_hex="#FFFFFF",
         diametro_mm=1.75,
         costo_spool_eur=12.50,
         peso_nominale_g=1000,
         peso_residuo_g=850,
         soglia_min_g=150,
+        stato="DISPONIBILE",
         ubicazione_id=slot.id,
     )
     f2 = Filament(
         materiale="PLA+",
         marca="eSUN",
         colore="Bone White",
+        colore_hex="#F5F5DC",
         diametro_mm=1.75,
         costo_spool_eur=14.90,
         peso_nominale_g=1000,
         peso_residuo_g=120,
         soglia_min_g=200,
+        stato="DA_ASCIUGARE",
         ubicazione_id=slot.id,
     )
     for f in [f1, f2]:
