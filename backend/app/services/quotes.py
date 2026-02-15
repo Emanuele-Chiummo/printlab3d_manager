@@ -8,22 +8,21 @@ from app.models.quote import QuoteLine, QuoteVersion
 
 
 def recalc_quote_version(db: Session, qv: QuoteVersion) -> None:
-    # Recupera parametri stampante se associata
-    printer = None
-    if qv.printer_id:
-        from app.models.printer import Printer
-        printer = db.get(Printer, qv.printer_id)
-    # fallback ai parametri versione se non c'è stampante
-    def get_param(attr, default):
-        if printer and hasattr(printer, attr):
-            val = getattr(printer, attr)
-            if val is not None:
-                return Decimal(str(val))
-        return Decimal(str(getattr(qv, attr, default) or default))
-
-    tot = Decimal("0")
-    for line in qv.righe:
-        # materiale
+    # Recupera parametri da QuoteVersion
+    # (i parametri sono già nella versione, non più dalla stampante rimossa)
+    
+    # Somma totali per riga prima dello sconto
+    tot_imponibile = Decimal("0")
+    tot_iva = Decimal("0")
+    
+    for idx, line in enumerate(qv.righe):
+        # Quantità (default 1)
+        qty = Decimal(str(line.quantita or 1))
+        
+        # Prima riga? (per calcolare costi macchina/energia solo su questa)
+        is_first = (idx == 0)
+        
+        # 1. COSTO MATERIALE (per singolo pezzo)
         mat_cost = Decimal("0")
         if line.filament_id:
             filament = db.get(Filament, line.filament_id)
@@ -33,59 +32,90 @@ def recalc_quote_version(db: Session, qv: QuoteVersion) -> None:
             denom = Decimal(str(filament.peso_nominale_g or 1000))
             costo_per_g = (costo_spool / denom) if denom != 0 else Decimal("0")
             mat_cost = costo_per_g * Decimal(str(line.peso_materiale_g or 0))
-        line.costo_materiale_eur = float(mat_cost.quantize(Decimal("0.01")))
+        line.costo_materiale_eur = float((mat_cost * qty).quantize(Decimal("0.01")))
 
-        hours = Decimal(str(line.tempo_stimato_min or 0)) / Decimal("60")
-        # energia
-        potenza_w = get_param('potenza_w', 0)
-        costo_energia_kwh = get_param('costo_energia_kwh', 0)
-        energia_kwh = (potenza_w / Decimal("1000")) * hours
-        energia_cost = energia_kwh * costo_energia_kwh
+        # Ore di stampa (per singolo pezzo)
+        print_hours = Decimal(str(line.tempo_stimato_min or 0)) / Decimal("60")
+        
+        # Ore di manodopera (inserite dall'utente, se 0 non conta)
+        labor_hours = Decimal(str(line.ore_manodopera_min or 0)) / Decimal("60")
 
-        # macchina/usura
-        costo_macchina_eur_h = get_param('costo_macchina_eur_h', 0)
-        costo_macchina = hours * costo_macchina_eur_h
+        # 2. COSTO ENERGIA = (potenza_w/1000) * print_hours * costo_energia_kwh * qty (SOLO PRIMA RIGA)
+        if is_first:
+            potenza_w = Decimal(str(qv.potenza_w or 200))
+            costo_energia_kwh = Decimal(str(qv.costo_energia_kwh or 0.15))
+            energia_kwh = (potenza_w / Decimal("1000")) * print_hours
+            energia_cost = energia_kwh * costo_energia_kwh
+            line.costo_energia_eur = float((energia_cost * qty).quantize(Decimal("0.01")))
+        else:
+            energia_cost = Decimal("0")
+            line.costo_energia_eur = 0.0
 
-        # manodopera
-        costo_manodopera_eur_h = get_param('costo_manodopera_eur_h', 0)
-        costo_manodopera = hours * costo_manodopera_eur_h
+        # 3. COSTO MACCHINA/USURA = print_hours * costo_macchina_eur_h * qty (SOLO PRIMA RIGA)
+        if is_first:
+            costo_macchina_eur_h = Decimal(str(qv.costo_macchina_eur_h or 0.08))
+            costo_macchina = print_hours * costo_macchina_eur_h
+            line.costo_macchina_eur = float((costo_macchina * qty).quantize(Decimal("0.01")))
+        else:
+            costo_macchina = Decimal("0")
+            line.costo_macchina_eur = 0.0
 
-        # consumabili
-        consumabili_fissi_eur = get_param('consumabili_fissi_eur', 0)
+        # 4. COSTO MANODOPERA = labor_hours * costo_manodopera_eur_h (non moltiplicato per qty)
+        costo_manodopera_eur_h = Decimal(str(qv.costo_manodopera_eur_h or 0))
+        costo_manodopera = labor_hours * costo_manodopera_eur_h
+        line.costo_manodopera_eur = float(costo_manodopera.quantize(Decimal("0.01")))
 
-        # somma costi diretti
-        subtotale_diretti = mat_cost + energia_cost + costo_macchina + costo_manodopera + consumabili_fissi_eur
+        # 5. COSTO CONSUMABILI = consumabili_fissi_eur * qty
+        consumabili_fissi_eur = Decimal(str(qv.consumabili_fissi_eur or 0))
+        line.costo_consumabili_eur = float((consumabili_fissi_eur * qty).quantize(Decimal("0.01")))
 
-        # overhead e rischio
-        overhead_pct = get_param('overhead_pct', 0)
-        rischio_pct = get_param('rischio_pct', 0)
+        # 6. SUBTOTALE COSTI DIRETTI (già moltiplicati per qty tranne manodopera)
+        subtotale_diretti = (mat_cost * qty) + (energia_cost * qty) + (costo_macchina * qty) + costo_manodopera + (consumabili_fissi_eur * qty)
+
+        # 7. OVERHEAD = subtotale_diretti * overhead_pct
+        overhead_pct = Decimal(str(qv.overhead_pct or 10))
         overhead = subtotale_diretti * overhead_pct / Decimal("100")
+
+        # 8. RISCHIO = subtotale_diretti * rischio_pct
+        rischio_pct = Decimal(str(qv.rischio_pct or 5))
         rischio = subtotale_diretti * rischio_pct / Decimal("100")
 
-        # costo totale netto
+        # 9. COSTO TOTALE NETTO = subtotale_diretti + overhead + rischio
         costo_totale_netto = subtotale_diretti + overhead + rischio
 
-        # margine
-        margine_pct = get_param('margine_pct', 0)
-        prezzo_netto = costo_totale_netto * (Decimal("1") + margine_pct / Decimal("100"))
+        # 10. PREZZO NETTO - Override o Calcolo
+        if qv.prezzo_unitario_vendita is not None:
+            # Se è impostato un prezzo di vendita, usa quello
+            prezzo_unitario = Decimal(str(qv.prezzo_unitario_vendita))
+            prezzo_netto_riga = prezzo_unitario * qty
+        else:
+            # Altrimenti calcola con margine_pct
+            margine_pct = Decimal(str(qv.margine_pct or 20))
+            prezzo_netto_riga = costo_totale_netto * (Decimal("1") + margine_pct / Decimal("100"))
 
-        # sconto
-        sconto_eur = get_param('sconto_eur', 0)
-        prezzo_netto_scontato = prezzo_netto - sconto_eur
-        if prezzo_netto_scontato < 0:
-            prezzo_netto_scontato = Decimal("0")
+        # Salva il totale di riga (senza IVA, lo sconto sarà applicato sul totale)
+        line.totale_riga_eur = float(prezzo_netto_riga.quantize(Decimal("0.01")))
+        
+        # Accumula per il totale
+        tot_imponibile += prezzo_netto_riga
 
-        # iva
-        iva_pct = get_param('iva_pct', 0)
-        prezzo_ivato = prezzo_netto_scontato * (Decimal("1") + iva_pct / Decimal("100"))
+    # 11. SCONTO SUL TOTALE (non per riga)
+    sconto_eur = Decimal(str(qv.sconto_eur or 0))
+    tot_imponibile_scontato = tot_imponibile - sconto_eur
+    if tot_imponibile_scontato < 0:
+        tot_imponibile_scontato = Decimal("0")
 
-        # Salva breakdown su riga (opzionale, puoi aggiungere altri campi se vuoi)
-        line.costo_macchina_eur = float(costo_macchina.quantize(Decimal("0.01")))
-        line.costo_manodopera_eur = float(costo_manodopera.quantize(Decimal("0.01")))
-        # puoi aggiungere line.costo_energia_eur = float(energia_cost.quantize(Decimal("0.01"))) se hai il campo
-        line.totale_riga_eur = float(prezzo_ivato.quantize(Decimal("0.01")))
-        tot += prezzo_ivato
+    # 12. IVA SUL TOTALE SCONTATO (solo se applica_iva è True)
+    if qv.applica_iva:
+        iva_pct = Decimal(str(qv.iva_pct or 22))
+        tot_iva = tot_imponibile_scontato * iva_pct / Decimal("100")
+        tot_lordo = tot_imponibile_scontato + tot_iva
+    else:
+        tot_iva = Decimal("0")
+        tot_lordo = tot_imponibile_scontato
 
-    qv.totale_imponibile_eur = float(tot.quantize(Decimal("0.01")))
-    qv.totale_iva_eur = 0  # già inclusa in prezzo_ivato per ogni riga
-    qv.totale_lordo_eur = float(tot.quantize(Decimal("0.01")))
+    # Salva i totali
+    qv.totale_imponibile_eur = float(tot_imponibile_scontato.quantize(Decimal("0.01")))
+    qv.totale_iva_eur = float(tot_iva.quantize(Decimal("0.01")))
+    qv.totale_lordo_eur = float(tot_lordo.quantize(Decimal("0.01")))
+

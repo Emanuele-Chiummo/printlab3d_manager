@@ -79,13 +79,16 @@ def render_quote_pdf(quote: Quote, qv: QuoteVersion) -> (bytes, str):
     c.line(x, y, x + 150 * mm, y)
     y -= 6 * mm
     c.setFont("Helvetica-Bold", 12)
-    c.drawString(x, y, f"Totale imponibile: € {float(qv.totale_imponibile_eur):.2f}")
-    y -= 8 * mm
-    c.setFont("Helvetica-Bold", 11)
-    c.drawString(x, y, f"IVA ({float(qv.iva_pct):.2f}%): € {float(qv.totale_iva_eur):.2f}")
-    y -= 8 * mm
-    c.setFont("Helvetica-Bold", 13)
-    c.drawString(x, y, f"Totale lordo: € {float(qv.totale_lordo_eur):.2f}")
+    if qv.applica_iva:
+        c.drawString(x, y, f"Totale imponibile: € {float(qv.totale_imponibile_eur):.2f}")
+        y -= 8 * mm
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(x, y, f"IVA ({float(qv.iva_pct):.2f}%): € {float(qv.totale_iva_eur):.2f}")
+        y -= 8 * mm
+        c.setFont("Helvetica-Bold", 13)
+        c.drawString(x, y, f"Totale IVA inclusa: € {float(qv.totale_lordo_eur):.2f}")
+    else:
+        c.drawString(x, y, f"Totale: € {float(qv.totale_imponibile_eur):.2f}")
     y -= 16 * mm
 
     c.setFont("Helvetica-Oblique", 8)

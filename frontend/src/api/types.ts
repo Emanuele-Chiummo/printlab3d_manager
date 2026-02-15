@@ -56,6 +56,18 @@ export interface QuoteVersion {
   quote_id: number
   version_number: number
   status: string
+  costo_macchina_eur_h: number
+  costo_manodopera_eur_h: number
+  potenza_w: number
+  costo_energia_kwh: number
+  consumabili_fissi_eur: number
+  overhead_pct: number
+  rischio_pct: number
+  margine_pct: number
+  sconto_eur: number
+  iva_pct: number
+  applica_iva: boolean
+  prezzo_unitario_vendita: number | null
   totale_imponibile_eur: number
   totale_iva_eur: number
   totale_lordo_eur: number

@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Enum, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import Boolean, Enum, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -36,12 +36,18 @@ class QuoteVersion(Base, TimestampMixin, AuditUserMixin):
 
 
     # Parametri economici
-    costo_macchina_eur_h: Mapped[float] = mapped_column(Numeric(10, 2), default=5.0)
-    costo_manodopera_eur_h: Mapped[float] = mapped_column(Numeric(10, 2), default=15.0)
+    costo_macchina_eur_h: Mapped[float] = mapped_column(Numeric(10, 2), default=0.08)
+    costo_manodopera_eur_h: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
+    potenza_w: Mapped[float] = mapped_column(Numeric(10, 2), default=200.0)
+    costo_energia_kwh: Mapped[float] = mapped_column(Numeric(10, 4), default=0.15)
+    consumabili_fissi_eur: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
     overhead_pct: Mapped[float] = mapped_column(Numeric(5, 2), default=10.0)
+    rischio_pct: Mapped[float] = mapped_column(Numeric(5, 2), default=5.0)
     margine_pct: Mapped[float] = mapped_column(Numeric(5, 2), default=20.0)
     sconto_eur: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
     iva_pct: Mapped[float] = mapped_column(Numeric(5, 2), default=22.0)
+    applica_iva: Mapped[bool] = mapped_column(Boolean, default=True)
+    prezzo_unitario_vendita: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True, default=None)
 
     # Totali calcolati
     totale_imponibile_eur: Mapped[float] = mapped_column(Numeric(12, 2), default=0.0)
@@ -60,13 +66,17 @@ class QuoteLine(Base, TimestampMixin, AuditUserMixin):
 
     descrizione: Mapped[str] = mapped_column(String(255))
     filament_id: Mapped[int | None] = mapped_column(ForeignKey("filaments.id"), nullable=True)
+    quantita: Mapped[int] = mapped_column(Integer, default=1)
 
-    peso_materiale_g: Mapped[int] = mapped_column(Integer, default=0)
+    peso_materiale_g: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
     costo_materiale_eur: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
 
     tempo_stimato_min: Mapped[int] = mapped_column(Integer, default=0)
+    ore_manodopera_min: Mapped[int] = mapped_column(Integer, default=0)
     costo_macchina_eur: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
     costo_manodopera_eur: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
+    costo_energia_eur: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
+    costo_consumabili_eur: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
 
     totale_riga_eur: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
 

@@ -51,10 +51,16 @@ def create_version(quote_id: int, payload: QuoteVersionCreate, db: Session = Dep
         version_number=next_v,
         costo_macchina_eur_h=payload.costo_macchina_eur_h,
         costo_manodopera_eur_h=payload.costo_manodopera_eur_h,
+        potenza_w=payload.potenza_w,
+        costo_energia_kwh=payload.costo_energia_kwh,
+        consumabili_fissi_eur=payload.consumabili_fissi_eur,
         overhead_pct=payload.overhead_pct,
+        rischio_pct=payload.rischio_pct,
         margine_pct=payload.margine_pct,
         sconto_eur=payload.sconto_eur,
         iva_pct=payload.iva_pct,
+        applica_iva=payload.applica_iva,
+        prezzo_unitario_vendita=payload.prezzo_unitario_vendita,
     )
     qv.created_by_id = current.id
     qv.updated_by_id = current.id
