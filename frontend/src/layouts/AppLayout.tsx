@@ -190,7 +190,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           sx={{
             background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(219,234,254,0.85))',
             borderRadius: '16px',
-            p: 2.5,
+            px: 3,
+            py: 2,
             border: '1px solid rgba(148,163,184,0.2)',
             boxShadow: '0 30px 65px -50px rgba(15,23,42,0.65)',
             backdropFilter: 'blur(8px)',

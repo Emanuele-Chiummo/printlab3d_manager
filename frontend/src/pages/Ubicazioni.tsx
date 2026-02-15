@@ -72,6 +72,7 @@ export default function UbicazioniPage() {
           flexDirection: { xs: 'column', md: 'row' },
           alignItems: { md: 'center' },
           justifyContent: 'space-between',
+          mt: 3,
           mb: 3,
           gap: 2,
         }}
@@ -115,11 +116,11 @@ export default function UbicazioniPage() {
           <TableContainer>
             <Table size="small" stickyHeader>
               <TableHead>
-                <TableRow>
-                  <TableCell>Nome</TableCell>
-                  <TableCell>Tipo</TableCell>
-                  <TableCell>Parent ID</TableCell>
-                  <TableCell align="right" />
+                <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
+                  <TableCell sx={{ fontWeight: 600 }}>Nome</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Tipo</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Parent ID</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 600 }} />
                 </TableRow>
               </TableHead>
               <TableBody>

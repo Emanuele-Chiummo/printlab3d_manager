@@ -249,6 +249,7 @@ export default function PreventiviPage() {
           flexDirection: { xs: 'column', md: 'row' },
           alignItems: { md: 'center' },
           justifyContent: 'space-between',
+          mt: 3,
           mb: 3,
           gap: 2,
         }}
@@ -288,9 +289,9 @@ export default function PreventiviPage() {
           <TableContainer sx={{ maxHeight: 520 }}>
             <Table size="small" stickyHeader>
               <TableHead>
-                <TableRow>
-                  <TableCell>Codice</TableCell>
-                  <TableCell>Cliente</TableCell>
+                <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
+                  <TableCell sx={{ fontWeight: 600 }}>Codice</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Cliente</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -344,13 +345,13 @@ export default function PreventiviPage() {
           ) : (
             <TableContainer>
               <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Versione</TableCell>
-                    <TableCell>Stato</TableCell>
-                    <TableCell align="right">Imponibile</TableCell>
-                    <TableCell align="right">Totale</TableCell>
-                    <TableCell align="right" />
+              <TableHead>
+                <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
+                  <TableCell sx={{ fontWeight: 600 }}>Versione</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Stato</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 600 }}>Imponibile</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 600 }}>Totale</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 600 }} />
                   </TableRow>
                 </TableHead>
                 <TableBody>

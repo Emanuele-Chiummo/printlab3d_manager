@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Button, Card, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography, Chip, MenuItem, Alert, CircularProgress } from '@mui/material'
+import { Box, Button, Card, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography, Chip, MenuItem, Alert, CircularProgress, Paper } from '@mui/material'
 import api from '../api/client'
 import { User, Role } from '../types'
 
@@ -42,33 +42,39 @@ export default function UtentiPage() {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ mt: 3 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
         <Typography variant="h5">Gestione Utenti</Typography>
         <Button variant="contained" onClick={onNew}>Nuovo Utente</Button>
       </Stack>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Email</TableCell>
-            <TableCell>Nome</TableCell>
-            <TableCell>Ruolo</TableCell>
-            <TableCell>Stato</TableCell>
-            <TableCell>Reset Password</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {rows.map((u) => (
-            <TableRow key={u.id} hover>
-              <TableCell>{u.email}</TableCell>
-              <TableCell>{u.full_name}</TableCell>
-              <TableCell>{u.role}</TableCell>
-                <TableCell>{u.is_active ? <Chip label="Attivo" color="success" size="small" /> : <Chip label="Disattivo" color="default" size="small" />}</TableCell>
-              <TableCell>{u.must_reset_password ? <Chip label="Da resettare" color="warning" size="small" /> : <Chip label="OK" color="success" size="small" />}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      
+      <Paper sx={{ borderRadius: 2, overflow: 'hidden', boxShadow: 1 }}>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
+                <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Nome</TableCell>
+                <TableCell sx={{ fontWeight: 600, display: { xs: 'none', sm: 'table-cell' } }}>Ruolo</TableCell>
+                <TableCell sx={{ fontWeight: 600, display: { xs: 'none', md: 'table-cell' } }}>Stato</TableCell>
+                <TableCell sx={{ fontWeight: 600, display: { xs: 'none', lg: 'table-cell' } }}>Reset Password</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.map((u) => (
+                <TableRow key={u.id} hover>
+                  <TableCell>{u.email}</TableCell>
+                  <TableCell>{u.full_name}</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{u.role}</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{u.is_active ? <Chip label="Attivo" color="success" size="small" /> : <Chip label="Disattivo" color="default" size="small" />}</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' } }}>{u.must_reset_password ? <Chip label="Da resettare" color="warning" size="small" /> : <Chip label="OK" color="success" size="small" />}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+      
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Nuovo Utente</DialogTitle>
         <DialogContent>

@@ -11,6 +11,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   TextField,
@@ -20,6 +21,7 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Paper,
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
@@ -125,7 +127,7 @@ export default function FilamentiPage() {
 
   return (
     <>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 3, mb: 2 }}>
         <Typography variant="h5">Filamenti</Typography>
         {canWrite && (
           <Button variant="contained" onClick={onNew}>
@@ -175,22 +177,24 @@ export default function FilamentiPage() {
         )}
       </Stack>
 
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Materiale</TableCell>
-            <TableCell>Marca</TableCell>
-            <TableCell>Colore</TableCell>
-            <TableCell>Ubicazione</TableCell>
-            <TableCell>Data acquisto</TableCell>
-            <TableCell align="right">Residuo (g)</TableCell>
-            <TableCell align="right">Soglia (g)</TableCell>
-            <TableCell align="right">Costo</TableCell>
-            <TableCell align="right">€/g</TableCell>
-            <TableCell>Stato</TableCell>
-            <TableCell align="right" />
-          </TableRow>
-        </TableHead>
+      <Paper sx={{ borderRadius: 2, overflow: 'hidden', boxShadow: 1 }}>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
+                <TableCell sx={{ fontWeight: 600 }}>Materiale</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Marca</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Colore</TableCell>
+                <TableCell sx={{ fontWeight: 600, display: { xs: 'none', md: 'table-cell' } }}>Ubicazione</TableCell>
+                <TableCell sx={{ fontWeight: 600, display: { xs: 'none', lg: 'table-cell' } }}>Data acquisto</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600 }}>Residuo (g)</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600, display: { xs: 'none', sm: 'table-cell' } }}>Soglia (g)</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600, display: { xs: 'none', lg: 'table-cell' } }}>Costo</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600, display: { xs: 'none', lg: 'table-cell' } }}>€/g</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Stato</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600 }} />
+              </TableRow>
+            </TableHead>
         <TableBody>
           {filteredRows.map((r) => {
             const low = r.peso_residuo_g <= r.soglia_min_g
@@ -215,7 +219,7 @@ export default function FilamentiPage() {
                     <Typography variant="body2">{r.colore}</Typography>
                   </Box>
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
                   {r.ubicazione_id ? (
                     <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
                       {locations.find(l => l.id === r.ubicazione_id)?.nome || `ID ${r.ubicazione_id}`}
@@ -224,7 +228,7 @@ export default function FilamentiPage() {
                     <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem', fontStyle: 'italic' }}>—</Typography>
                   )}
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' } }}>
                   {r.data_acquisto ? (
                     <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
                       {new Date(r.data_acquisto).toLocaleDateString('it-IT')}
@@ -234,9 +238,9 @@ export default function FilamentiPage() {
                   )}
                 </TableCell>
                 <TableCell align="right">{r.peso_residuo_g}</TableCell>
-                <TableCell align="right">{r.soglia_min_g}</TableCell>
-                <TableCell align="right">€ {r.costo_spool_eur.toFixed(2)}</TableCell>
-                <TableCell align="right">
+                <TableCell align="right" sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{r.soglia_min_g}</TableCell>
+                <TableCell align="right" sx={{ display: { xs: 'none', lg: 'table-cell' } }}>€ {r.costo_spool_eur.toFixed(2)}</TableCell>
+                <TableCell align="right" sx={{ display: { xs: 'none', lg: 'table-cell' } }}>
                   {r.peso_nominale_g > 0 ? `€ ${(r.costo_spool_eur / r.peso_nominale_g).toFixed(3)}` : '—'}
                 </TableCell>
                 <TableCell>
@@ -268,7 +272,9 @@ export default function FilamentiPage() {
             )
           })}
         </TableBody>
-      </Table>
+        </Table>
+      </TableContainer>
+      </Paper>
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>{editing ? 'Modifica filamento' : 'Nuovo filamento'}</DialogTitle>

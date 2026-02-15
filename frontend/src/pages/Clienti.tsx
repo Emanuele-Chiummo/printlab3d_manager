@@ -7,10 +7,12 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  Paper,
   Stack,
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   TextField,
@@ -74,7 +76,7 @@ export default function ClientiPage() {
 
   return (
     <>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 3, mb: 2 }}>
         <Typography variant="h5">Clienti</Typography>
         {canWrite && (
           <Button variant="contained" onClick={onNew}>
@@ -83,17 +85,19 @@ export default function ClientiPage() {
         )}
       </Stack>
 
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Tipo</TableCell>
-            <TableCell>Ragione sociale / Nome</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>Telefono</TableCell>
-            <TableCell>Indirizzo</TableCell>
-            <TableCell align="right" />
-          </TableRow>
-        </TableHead>
+      <Paper sx={{ borderRadius: 2, overflow: 'hidden', boxShadow: 1 }}>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
+                <TableCell sx={{ fontWeight: 600 }}>Tipo</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Ragione sociale / Nome</TableCell>
+                <TableCell sx={{ fontWeight: 600, display: { xs: 'none', md: 'table-cell' } }}>Email</TableCell>
+                <TableCell sx={{ fontWeight: 600, display: { xs: 'none', sm: 'table-cell' } }}>Telefono</TableCell>
+                <TableCell sx={{ fontWeight: 600, display: { xs: 'none', lg: 'table-cell' } }}>Indirizzo</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600 }} />
+              </TableRow>
+            </TableHead>
         <TableBody>
           {rows.map((r) => (
             <TableRow key={r.id} hover>
@@ -101,9 +105,9 @@ export default function ClientiPage() {
               <TableCell>
                 {r.tipo_cliente === 'DITTA' ? r.ragione_sociale : `${r.nome} ${r.cognome}`}
               </TableCell>
-              <TableCell>{r.email}</TableCell>
-              <TableCell>{r.telefono}</TableCell>
-              <TableCell>{r.indirizzo}</TableCell>
+              <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{r.email}</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{r.telefono}</TableCell>
+              <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' } }}>{r.indirizzo}</TableCell>
               <TableCell align="right">
                 {canWrite && (
                   <IconButton onClick={() => onEdit(r)} size="small">
@@ -119,7 +123,9 @@ export default function ClientiPage() {
             </TableRow>
           ))}
         </TableBody>
-      </Table>
+        </Table>
+      </TableContainer>
+      </Paper>
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>{editing ? 'Modifica cliente' : 'Nuovo cliente'}</DialogTitle>

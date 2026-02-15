@@ -8,10 +8,12 @@ import {
   DialogContent,
   DialogTitle,
   MenuItem,
+  Paper,
   Stack,
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   TextField,
@@ -86,23 +88,25 @@ export default function JobPage() {
 
   return (
     <>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 3, mb: 2 }}>
         <Typography variant="h5">Job</Typography>
       </Stack>
 
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>ID</TableCell>
-            <TableCell>Preventivo</TableCell>
-            <TableCell>Stato</TableCell>
-            <TableCell align="right">Quantità</TableCell>
-            <TableCell align="right">Tempo/pz (min)</TableCell>
-            <TableCell align="right">Costo finale</TableCell>
-            <TableCell align="right">Margine</TableCell>
-            <TableCell align="right" />
-          </TableRow>
-        </TableHead>
+      <Paper sx={{ borderRadius: 2, overflow: 'hidden', boxShadow: 1 }}>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
+                <TableCell sx={{ fontWeight: 600 }}>ID</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Preventivo</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Stato</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600, display: { xs: 'none', sm: 'table-cell' } }}>Quantità</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600, display: { xs: 'none', md: 'table-cell' } }}>Tempo/pz (min)</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600 }}>Costo finale</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600, display: { xs: 'none', lg: 'table-cell' } }}>Margine</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600 }} />
+              </TableRow>
+            </TableHead>
         <TableBody>
           {rows.map((r) => (
             <TableRow key={r.id} hover>
@@ -111,10 +115,10 @@ export default function JobPage() {
               <TableCell>
                 <Chip label={r.status} color={chipColor(r.status) as any} size="small" />
               </TableCell>
-              <TableCell align="right">{r.quantita_prodotta}</TableCell>
-              <TableCell align="right">{r.tempo_reale_min}</TableCell>
+              <TableCell align="right" sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{r.quantita_prodotta}</TableCell>
+              <TableCell align="right" sx={{ display: { xs: 'none', md: 'table-cell' } }}>{r.tempo_reale_min}</TableCell>
               <TableCell align="right">€ {r.costo_finale_eur.toFixed(2)}</TableCell>
-              <TableCell align="right">€ {r.margine_eur.toFixed(2)}</TableCell>
+              <TableCell align="right" sx={{ display: { xs: 'none', lg: 'table-cell' } }}>€ {r.margine_eur.toFixed(2)}</TableCell>
               <TableCell align="right">
                 {canWrite && (
                   <>
@@ -141,9 +145,9 @@ export default function JobPage() {
             </TableRow>
           ))}
         </TableBody>
-      </Table>
-
-
+          </Table>
+        </TableContainer>
+      </Paper>
 
       <Dialog open={openEdit} onClose={() => setOpenEdit(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Modifica Job (valori per pezzo)</DialogTitle>

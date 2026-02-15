@@ -15,6 +15,7 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  TableContainer,
   TablePagination,
   Stack,
   MenuItem,
@@ -142,7 +143,7 @@ export default function CostiPage() {
 
   return (
     <>
-      <Typography variant="h5" sx={{ mb: 2 }}>
+      <Typography variant="h5" sx={{ mt: 3, mb: 2 }}>
         Costi
       </Typography>
 
@@ -209,25 +210,27 @@ export default function CostiPage() {
             )}
           </Stack>
 
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Periodo</TableCell>
-                <TableCell>Categoria</TableCell>
-                <TableCell>Job</TableCell>
-                <TableCell align="right">Importo (€)</TableCell>
-                <TableCell>Note</TableCell>
-                {canWriteEntries && <TableCell align="right">Azioni</TableCell>}
-              </TableRow>
-            </TableHead>
+          <Paper sx={{ borderRadius: 2, overflow: 'hidden', boxShadow: 1, mb: 2 }}>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
+                    <TableCell sx={{ fontWeight: 600 }}>Periodo</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Categoria</TableCell>
+                    <TableCell sx={{ fontWeight: 600, display: { xs: 'none', sm: 'table-cell' } }}>Job</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 600 }}>Importo (€)</TableCell>
+                    <TableCell sx={{ fontWeight: 600, display: { xs: 'none', md: 'table-cell' } }}>Note</TableCell>
+                    {canWriteEntries && <TableCell align="right" sx={{ fontWeight: 600 }}>Azioni</TableCell>}
+                  </TableRow>
+                </TableHead>
             <TableBody>
               {paged.map((e) => (
                 <TableRow key={e.id} hover>
                   <TableCell>{e.periodo_yyyymm}</TableCell>
                   <TableCell>{catName(e.categoria_id)}</TableCell>
-                  <TableCell>{e.job_id ? `#${e.job_id}` : '-'}</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{e.job_id ? `#${e.job_id}` : '-'}</TableCell>
                   <TableCell align="right">{Number(e.importo_eur).toFixed(2)}</TableCell>
-                  <TableCell>{e.note || ''}</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{e.note || ''}</TableCell>
                   {canWriteEntries && (
                     <TableCell align="right">
                       <Button color="error" size="small" onClick={() => deleteEntry(e.id)}>
@@ -238,7 +241,9 @@ export default function CostiPage() {
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+            </Table>
+            </TableContainer>
+          </Paper>
 
           <TablePagination
             component="div"
@@ -322,22 +327,26 @@ export default function CostiPage() {
             )}
           </Stack>
 
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Nome</TableCell>
-                <TableCell>Descrizione</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {categories.map((c) => (
-                <TableRow key={c.id} hover>
-                  <TableCell>{c.nome}</TableCell>
-                  <TableCell>{c.descrizione}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <Paper sx={{ borderRadius: 2, overflow: 'hidden', boxShadow: 1 }}>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
+                    <TableCell sx={{ fontWeight: 600 }}>Nome</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Descrizione</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {categories.map((c) => (
+                    <TableRow key={c.id} hover>
+                      <TableCell>{c.nome}</TableCell>
+                      <TableCell>{c.descrizione}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
 
           <Dialog open={catDialog} onClose={() => setCatDialog(false)} maxWidth="sm" fullWidth>
             <DialogTitle>Nuova categoria</DialogTitle>
@@ -358,69 +367,75 @@ export default function CostiPage() {
       {tab === 2 && (
         <>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 2 }}>
-            <Paper sx={{ p: 2, flex: 1 }}>
+            <Paper sx={{ p: 2, flex: 1, borderRadius: 2, boxShadow: 1 }}>
               <Typography variant="h6" sx={{ mb: 1 }}>Costi per mese</Typography>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Periodo</TableCell>
-                    <TableCell align="right">Totale (€)</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {monthly.map((r) => (
-                    <TableRow key={r.periodo_yyyymm}>
-                      <TableCell>{r.periodo_yyyymm}</TableCell>
-                      <TableCell align="right">{Number(r.totale_eur).toFixed(2)}</TableCell>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
+                      <TableCell sx={{ fontWeight: 600 }}>Periodo</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600 }}>Totale (€)</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHead>
+                  <TableBody>
+                    {monthly.map((r) => (
+                      <TableRow key={r.periodo_yyyymm}>
+                        <TableCell>{r.periodo_yyyymm}</TableCell>
+                        <TableCell align="right">{Number(r.totale_eur).toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
             </Paper>
 
-            <Paper sx={{ p: 2, flex: 1 }}>
+            <Paper sx={{ p: 2, flex: 1, borderRadius: 2, boxShadow: 1 }}>
               <Typography variant="h6" sx={{ mb: 1 }}>Costi per cliente (top)</Typography>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Cliente</TableCell>
-                    <TableCell align="right">Totale (€)</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {byCustomer.map((r) => (
-                    <TableRow key={r.customer_id}>
-                      <TableCell>{r.ragione_sociale}</TableCell>
-                      <TableCell align="right">{Number(r.totale_eur).toFixed(2)}</TableCell>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
+                      <TableCell sx={{ fontWeight: 600 }}>Cliente</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600 }}>Totale (€)</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHead>
+                  <TableBody>
+                    {byCustomer.map((r) => (
+                      <TableRow key={r.customer_id}>
+                        <TableCell>{r.ragione_sociale}</TableCell>
+                        <TableCell align="right">{Number(r.totale_eur).toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
             </Paper>
           </Stack>
 
-          <Paper sx={{ p: 2 }}>
+          <Paper sx={{ p: 2, borderRadius: 2, boxShadow: 1 }}>
             <Typography variant="h6" sx={{ mb: 1 }}>Costi per job</Typography>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Job</TableCell>
-                  <TableCell>Preventivo</TableCell>
-                  <TableCell>Cliente</TableCell>
-                  <TableCell align="right">Totale (€)</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {byJob.map((r) => (
-                  <TableRow key={r.job_id} hover>
-                    <TableCell>#{r.job_id}</TableCell>
-                    <TableCell>{r.quote_code}</TableCell>
-                    <TableCell>{r.customer_name}</TableCell>
-                    <TableCell align="right">{Number(r.totale_eur).toFixed(2)}</TableCell>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
+                    <TableCell sx={{ fontWeight: 600 }}>Job</TableCell>
+                    <TableCell sx={{ fontWeight: 600, display: { xs: 'none', sm: 'table-cell' } }}>Preventivo</TableCell>
+                    <TableCell sx={{ fontWeight: 600, display: { xs: 'none', md: 'table-cell' } }}>Cliente</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 600 }}>Totale (€)</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {byJob.map((r) => (
+                    <TableRow key={r.job_id} hover>
+                      <TableCell>#{r.job_id}</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{r.quote_code}</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{r.customer_name}</TableCell>
+                      <TableCell align="right">{Number(r.totale_eur).toFixed(2)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
             <Box sx={{ mt: 1, color: 'text.secondary', fontSize: 12 }}>
               <Chip size="small" label="Suggerimento" sx={{ mr: 1 }} />
               Associa le registrazioni costo a un job per avere ripartizione più accurata.

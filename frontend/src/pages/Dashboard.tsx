@@ -96,7 +96,7 @@ export default function Dashboard() {
     api.get('/api/v1/dashboard/kpi').then((r) => setKpi(r.data))
   }, [])
 
-  const items = [
+  const items: KPICardProps[] = [
     {
       label: 'Preventivi mese',
       value: kpi?.preventivi_mese ?? '—',
@@ -149,7 +149,7 @@ export default function Dashboard() {
       label: 'Utile mese',
       value: kpi ? `€${kpi.utile_mese_eur.toFixed(2)}` : '—',
       icon: <AccountBalanceWalletIcon sx={{ fontSize: 28 }} />,
-      color: kpi && kpi.utile_mese_eur >= 0 ? 'primary' : 'error',
+      color: (kpi && kpi.utile_mese_eur >= 0 ? 'primary' : 'error') as 'primary' | 'error',
       bgGradient:
         kpi && kpi.utile_mese_eur >= 0
           ? 'linear-gradient(135deg, #ffffff 0%, #eff6ff 100%)'
