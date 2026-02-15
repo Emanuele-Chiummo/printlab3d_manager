@@ -37,6 +37,17 @@ export default function JobPage() {
     void loadFil()
   }, [])
 
+  const deleteJob = async (id: number) => {
+    if (!confirm('Confermi l\'eliminazione del job?')) return
+    try {
+      await api.delete(`/api/v1/jobs/${id}`)
+      await load()
+    } catch (err: any) {
+      const detail = err.response?.data?.detail || 'Errore durante l\'eliminazione'
+      alert(detail)
+    }
+  }
+
   // edit
   const [openEdit, setOpenEdit] = React.useState(false)
   const [editing, setEditing] = React.useState<Job | null>(null)
@@ -44,12 +55,12 @@ export default function JobPage() {
 
   const onEdit = (j: Job) => {
     setEditing(j)
-    setForm({ status: j.status, tempo_reale_min: j.tempo_reale_min, energia_kwh: j.energia_kwh, scarti_g: j.scarti_g, note: j.note })
+    setForm({ status: j.status, quantita_prodotta: j.quantita_prodotta, tempo_reale_min: j.tempo_reale_min, energia_kwh: j.energia_kwh, scarti_g: j.scarti_g, note: j.note })
     setOpenEdit(true)
   }
   const onSave = async () => {
     if (!editing) return
-    await api.put(`/api/v1/jobs/${editing.id}/`, form)
+    await api.put(`/api/v1/jobs/${editing.id}`, form)
     setOpenEdit(false)
     await load()
   }
@@ -61,7 +72,7 @@ export default function JobPage() {
   const [consG, setConsG] = React.useState(0)
   const addCons = async () => {
     if (!consJob) return
-    await api.post(`/api/v1/jobs/${consJob.id}/consumi/`, { filament_id: Number(consFil), peso_g: consG })
+    await api.post(`/api/v1/jobs/${consJob.id}/consumi`, { filament_id: Number(consFil), peso_g: consG })
     setOpenCons(false)
     await load()
   }
@@ -83,8 +94,10 @@ export default function JobPage() {
         <TableHead>
           <TableRow>
             <TableCell>ID</TableCell>
+            <TableCell>Preventivo</TableCell>
             <TableCell>Stato</TableCell>
-            <TableCell align="right">Tempo (min)</TableCell>
+            <TableCell align="right">Quantità</TableCell>
+            <TableCell align="right">Tempo/pz (min)</TableCell>
             <TableCell align="right">Costo finale</TableCell>
             <TableCell align="right">Margine</TableCell>
             <TableCell align="right" />
@@ -94,9 +107,11 @@ export default function JobPage() {
           {rows.map((r) => (
             <TableRow key={r.id} hover>
               <TableCell>{r.id}</TableCell>
+              <TableCell>{r.quote_code}</TableCell>
               <TableCell>
                 <Chip label={r.status} color={chipColor(r.status) as any} size="small" />
               </TableCell>
+              <TableCell align="right">{r.quantita_prodotta}</TableCell>
               <TableCell align="right">{r.tempo_reale_min}</TableCell>
               <TableCell align="right">€ {r.costo_finale_eur.toFixed(2)}</TableCell>
               <TableCell align="right">€ {r.margine_eur.toFixed(2)}</TableCell>
@@ -117,6 +132,9 @@ export default function JobPage() {
                     >
                       Consumo
                     </Button>
+                    <Button size="small" color="error" onClick={() => deleteJob(r.id)}>
+                      Elimina
+                    </Button>
                   </>
                 )}
               </TableCell>
@@ -128,7 +146,7 @@ export default function JobPage() {
 
 
       <Dialog open={openEdit} onClose={() => setOpenEdit(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Modifica Job</DialogTitle>
+        <DialogTitle>Modifica Job (valori per pezzo)</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'grid', gap: 2, mt: 1, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
             <TextField select label="Stato" value={form.status || 'PIANIFICATO'} onChange={(e) => setForm((s: any) => ({ ...s, status: e.target.value }))}>
@@ -138,8 +156,9 @@ export default function JobPage() {
                 </MenuItem>
               ))}
             </TextField>
-            <TextField label="Tempo reale (min)" type="number" value={form.tempo_reale_min ?? 0} onChange={(e) => setForm((s: any) => ({ ...s, tempo_reale_min: Number(e.target.value) }))} />
-            <TextField label="Energia (kWh)" type="number" value={form.energia_kwh ?? 0} onChange={(e) => setForm((s: any) => ({ ...s, energia_kwh: Number(e.target.value) }))} />
+            <TextField label="Quantità prodotta" type="number" value={form.quantita_prodotta ?? 1} onChange={(e) => setForm((s: any) => ({ ...s, quantita_prodotta: Number(e.target.value) }))} helperText="Numero di pezzi prodotti" />
+            <TextField label="Tempo per pezzo (min)" type="number" value={form.tempo_reale_min ?? 0} onChange={(e) => setForm((s: any) => ({ ...s, tempo_reale_min: Number(e.target.value) }))} helperText="Minuti per singolo pezzo" />
+            <TextField label="Energia per pezzo (kWh)" type="number" inputProps={{ step: 0.001 }} value={form.energia_kwh ?? 0} onChange={(e) => setForm((s: any) => ({ ...s, energia_kwh: Number(e.target.value) }))} helperText="kWh per singolo pezzo" />
             <TextField label="Scarti (g)" type="number" value={form.scarti_g ?? 0} onChange={(e) => setForm((s: any) => ({ ...s, scarti_g: Number(e.target.value) }))} />
             <TextField label="Note" value={form.note || ''} onChange={(e) => setForm((s: any) => ({ ...s, note: e.target.value }))} sx={{ gridColumn: { md: '1 / -1' } }} multiline minRows={2} />
           </Box>

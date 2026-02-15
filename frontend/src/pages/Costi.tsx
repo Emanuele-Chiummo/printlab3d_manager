@@ -122,6 +122,14 @@ export default function CostiPage() {
     await loadReports()
   }
 
+  const deleteEntry = async (id: number) => {
+    if (!canWriteEntries) return
+    if (!confirm('Confermi la cancellazione di questo costo?')) return
+    await api.delete(`/api/v1/costs/entries/${id}`)
+    await loadEntries()
+    await loadReports()
+  }
+
   const catName = (id: number) => categories.find((c) => c.id === id)?.nome || `#${id}`
 
   const filtered = entries.filter((e) => {
@@ -209,6 +217,7 @@ export default function CostiPage() {
                 <TableCell>Job</TableCell>
                 <TableCell align="right">Importo (€)</TableCell>
                 <TableCell>Note</TableCell>
+                {canWriteEntries && <TableCell align="right">Azioni</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -219,6 +228,13 @@ export default function CostiPage() {
                   <TableCell>{e.job_id ? `#${e.job_id}` : '-'}</TableCell>
                   <TableCell align="right">{Number(e.importo_eur).toFixed(2)}</TableCell>
                   <TableCell>{e.note || ''}</TableCell>
+                  {canWriteEntries && (
+                    <TableCell align="right">
+                      <Button color="error" size="small" onClick={() => deleteEntry(e.id)}>
+                        Elimina
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>

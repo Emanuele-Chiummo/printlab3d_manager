@@ -7,15 +7,17 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  MenuItem,
+  Paper,
   Stack,
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   TextField,
   Typography,
-  MenuItem,
 } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
 import { loadLocations, createLocation, updateLocation, deleteLocation } from '../services/locations'
@@ -64,41 +66,82 @@ export default function UbicazioniPage() {
 
   return (
     <>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-        <Typography variant="h5">Ubicazioni</Typography>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          alignItems: { md: 'center' },
+          justifyContent: 'space-between',
+          mb: 3,
+          gap: 2,
+        }}
+      >
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            Ubicazioni
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Traccia magazzini, scaffali e slot con una vista ordinata.
+          </Typography>
+        </Box>
         {canWrite && (
           <Button variant="contained" onClick={onNew}>
-            Nuova
+            Nuova ubicazione
           </Button>
         )}
-      </Stack>
+      </Box>
 
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Nome</TableCell>
-            <TableCell>Tipo</TableCell>
-            <TableCell>Parent ID</TableCell>
-            <TableCell align="right" />
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {rows.map((r) => (
-            <TableRow key={r.id} hover>
-              <TableCell>{r.nome}</TableCell>
-              <TableCell>{r.tipo}</TableCell>
-              <TableCell>{r.parent_id ?? '-'}</TableCell>
-              <TableCell align="right">
-                {canWrite && (
-                  <IconButton onClick={() => onEdit(r)} size="small">
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <Paper sx={{ p: 2.5 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Mappa ubicazioni
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              {rows.length} elementi sincronizzati
+            </Typography>
+          </Box>
+          {canWrite && (
+            <Button size="small" variant="outlined" onClick={onNew}>
+              Aggiungi
+            </Button>
+          )}
+        </Stack>
+        {rows.length === 0 ? (
+          <Box sx={{ py: 8, textAlign: 'center', color: 'text.secondary' }}>
+            <Typography variant="body2">Non ci sono ancora ubicazioni registrate.</Typography>
+          </Box>
+        ) : (
+          <TableContainer>
+            <Table size="small" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Nome</TableCell>
+                  <TableCell>Tipo</TableCell>
+                  <TableCell>Parent ID</TableCell>
+                  <TableCell align="right" />
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {rows.map((r) => (
+                  <TableRow key={r.id} hover>
+                    <TableCell sx={{ fontWeight: 600 }}>{r.nome}</TableCell>
+                    <TableCell>{r.tipo}</TableCell>
+                    <TableCell>{r.parent_id ?? '-'}</TableCell>
+                    <TableCell align="right">
+                      {canWrite && (
+                        <IconButton onClick={() => onEdit(r)} size="small" color="primary">
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Paper>
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>{editing ? 'Modifica ubicazione' : 'Nuova ubicazione'}</DialogTitle>

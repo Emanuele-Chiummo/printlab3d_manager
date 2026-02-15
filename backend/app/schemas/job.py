@@ -9,6 +9,7 @@ class JobCreateFromQuote(BaseModel):
 
 class JobUpdate(BaseModel):
     status: JobStatus | None = None
+    quantita_prodotta: int | None = None
     tempo_reale_min: int | None = None
     energia_kwh: float | None = None
     scarti_g: int | None = None
@@ -32,7 +33,9 @@ class JobConsumptionOut(BaseModel):
 class JobOut(BaseModel):
     id: int
     quote_version_id: int
+    quote_code: str = ""  # Codice preventivo di riferimento
     status: JobStatus
+    quantita_prodotta: int
     tempo_reale_min: int
     energia_kwh: float
     scarti_g: int

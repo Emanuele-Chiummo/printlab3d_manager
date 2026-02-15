@@ -4,9 +4,10 @@ from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 
 from app.models.quote import Quote, QuoteVersion
+from app.models.settings import PreventivoSettingsDB
 
 
-def render_quote_pdf(quote: Quote, qv: QuoteVersion) -> (bytes, str):
+def render_quote_pdf(quote: Quote, qv: QuoteVersion, settings: PreventivoSettingsDB) -> (bytes, str):
     buff = BytesIO()
     # Nome file dinamico
     filename = f"PREVENTIVO_{quote.codice}_v{qv.version_number}.pdf"
@@ -19,9 +20,9 @@ def render_quote_pdf(quote: Quote, qv: QuoteVersion) -> (bytes, str):
     x = 20 * mm
     y = height - 25 * mm
     c.setFont("Helvetica-Bold", 18)
-    c.drawString(x, y, "PRINTLAB3D")
+    c.drawString(x, y, settings.company_name)
     c.setFont("Helvetica", 10)
-    c.drawString(x, y - 7 * mm, "Via Esempio 123, 00100 Roma | info@printlab3d.local | +39 0123 456789")
+    c.drawString(x, y - 7 * mm, f"{settings.company_address} | {settings.company_email} | {settings.company_phone}")
     y -= 20 * mm
     c.setLineWidth(0.5)
     c.line(x, y, x + 170 * mm, y)

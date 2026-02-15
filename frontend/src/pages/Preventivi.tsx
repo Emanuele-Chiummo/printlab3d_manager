@@ -11,10 +11,12 @@ import {
   Divider,
   FormControlLabel,
   MenuItem,
+  Paper,
   Stack,
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   TextField,
@@ -34,6 +36,7 @@ export default function PreventiviPage() {
   const [filaments, setFilaments] = React.useState<Filament[]>([])
 
   const canWrite = user?.role === 'ADMIN' || user?.role === 'OPERATORE' || user?.role === 'COMMERCIALE'
+  const canCreateJob = user?.role === 'ADMIN' || user?.role === 'OPERATORE'
 
   const loadQuotes = () => api.get('/api/v1/quotes/').then((r) => setQuotes(r.data))
   const loadCustomers = () => api.get('/api/v1/customers/').then((r) => {
@@ -168,6 +171,30 @@ export default function PreventiviPage() {
     if (selected) await loadVersions(selected.id)
   }
 
+  const deleteQuote = async () => {
+    if (!selected) return
+    if (!confirm(`Confermi l'eliminazione del preventivo ${selected.codice}?`)) return
+    try {
+      await api.delete(`/api/v1/quotes/${selected.id}`)
+      setSelected(null)
+      setVersions([])
+      await loadQuotes()
+    } catch (err: any) {
+      const detail = err.response?.data?.detail || 'Errore durante l\'eliminazione'
+      alert(detail)
+    }
+  }
+
+  const createJob = async (versionId: number) => {
+    try {
+      await api.post('/api/v1/jobs/from-quote', { quote_version_id: versionId })
+      alert('Job creato con successo!')
+    } catch (err: any) {
+      const detail = err.response?.data?.detail || 'Errore durante la creazione del job'
+      alert(detail)
+    }
+  }
+
 
   // Scarica PDF con nome corretto
   const downloadPdf = async (vid: number) => {
@@ -216,66 +243,110 @@ export default function PreventiviPage() {
 
   return (
     <>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-        <Typography variant="h5">Preventivi</Typography>
-        {canWrite && (
-          <Button variant="contained" onClick={() => setOpenQ(true)}>
-            Nuovo preventivo
-          </Button>
-        )}
-      </Stack>
-
-      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1.2fr' } }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          alignItems: { md: 'center' },
+          justifyContent: 'space-between',
+          mb: 3,
+          gap: 2,
+        }}
+      >
         <Box>
-          <Typography variant="subtitle1" sx={{ mb: 1 }}>
-            Elenco
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            Preventivi
           </Typography>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Codice</TableCell>
-                <TableCell>Cliente</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {quotes.map((q) => (
-                <TableRow
-                  key={q.id}
-                  hover
-                  selected={selected?.id === q.id}
-                  onClick={() => setSelected(q)}
-                  sx={{ cursor: 'pointer' }}
-                >
-                  <TableCell>{q.codice}</TableCell>
-                  <TableCell>{(() => {
-                    const cust = customers.find((c) => c.id === q.customer_id);
-                    if (!cust) return q.customer_id;
-                    if (cust.ragione_sociale && cust.ragione_sociale.trim() !== '') return cust.ragione_sociale;
-                    return `${cust.nome} ${cust.cognome}`.trim();
-                  })()}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Gestisci offerte, versioni e conversione in job da un’unica vista.
+          </Typography>
         </Box>
+        {canWrite && (
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+            <Button variant="outlined" onClick={() => setOpenV(true)} disabled={!selected}>
+              Nuova versione
+            </Button>
+            <Button variant="contained" onClick={() => setOpenQ(true)}>
+              Nuovo preventivo
+            </Button>
+          </Stack>
+        )}
+      </Box>
 
-        <Box>
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-            <Typography variant="subtitle1">Versioni</Typography>
+      <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', lg: '1fr 1.2fr' } }}>
+        <Paper sx={{ p: 2.5 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                Elenco preventivi
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                Ultimi {quotes.length} preventivi inseriti
+              </Typography>
+            </Box>
+          </Stack>
+          <TableContainer sx={{ maxHeight: 520 }}>
+            <Table size="small" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Codice</TableCell>
+                  <TableCell>Cliente</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {quotes.map((q) => (
+                  <TableRow
+                    key={q.id}
+                    hover
+                    selected={selected?.id === q.id}
+                    onClick={() => setSelected(q)}
+                    sx={{ cursor: 'pointer' }}
+                  >
+                    <TableCell sx={{ fontWeight: selected?.id === q.id ? 600 : 500 }}>{q.codice}</TableCell>
+                    <TableCell>{(() => {
+                      const cust = customers.find((c) => c.id === q.customer_id)
+                      if (!cust) return q.customer_id
+                      if (cust.ragione_sociale && cust.ragione_sociale.trim() !== '') return cust.ragione_sociale
+                      return `${cust.nome} ${cust.cognome}`.trim()
+                    })()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+
+        <Paper sx={{ p: 2.5 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                Versioni e stato
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                Aggiorna stato, genera PDF e crea job
+              </Typography>
+            </Box>
             {canWrite && selected && (
-              <Button variant="outlined" onClick={() => setOpenV(true)}>
-                Nuova versione
-              </Button>
+              <Stack direction="row" spacing={1}>
+                <Button variant="text" color="error" size="small" onClick={deleteQuote}>
+                  Elimina
+                </Button>
+                <Button variant="outlined" size="small" onClick={() => setOpenV(true)}>
+                  Nuova versione
+                </Button>
+              </Stack>
             )}
           </Stack>
           {!selected ? (
-            <Typography color="text.secondary">Seleziona un preventivo</Typography>
+            <Box sx={{ py: 6, textAlign: 'center', color: 'text.secondary' }}>
+              <Typography variant="body2">Seleziona un preventivo per vedere i dettagli.</Typography>
+            </Box>
           ) : (
-            <>
+            <TableContainer>
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>v</TableCell>
+                    <TableCell>Versione</TableCell>
                     <TableCell>Stato</TableCell>
                     <TableCell align="right">Imponibile</TableCell>
                     <TableCell align="right">Totale</TableCell>
@@ -285,40 +356,47 @@ export default function PreventiviPage() {
                 <TableBody>
                   {versions.map((v) => (
                     <TableRow key={v.id} hover>
-                      <TableCell>{v.version_number}</TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>v{v.version_number}</TableCell>
                       <TableCell>
-                        <Chip label={v.status} color={statusColor(v.status) as any} size="small" />
+                        <Chip label={v.status} color={statusColor(v.status) as any} size="small" variant="filled" />
                       </TableCell>
                       <TableCell align="right">€ {v.totale_imponibile_eur.toFixed(2)}</TableCell>
                       <TableCell align="right">€ {v.totale_lordo_eur.toFixed(2)}</TableCell>
                       <TableCell align="right">
-                        <Button size="small" onClick={() => previewPdf(v.id)}>
-                          Anteprima PDF
-                        </Button>
-                        <Button size="small" onClick={() => downloadPdf(v.id)}>
-                          Scarica PDF
-                        </Button>
-                        {canWrite && (
-                          <>
-                            <Button size="small" onClick={() => setStatus(v.id, 'INVIATO')}>
-                              Invia
+                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                          <Button size="small" onClick={() => previewPdf(v.id)}>
+                            Anteprima
+                          </Button>
+                          <Button size="small" onClick={() => downloadPdf(v.id)}>
+                            Scarica
+                          </Button>
+                          {canWrite && (
+                            <>
+                              <Button size="small" onClick={() => setStatus(v.id, 'INVIATO')}>
+                                Invia
+                              </Button>
+                              <Button size="small" onClick={() => setStatus(v.id, 'ACCETTATO')}>
+                                Accetta
+                              </Button>
+                              <Button size="small" onClick={() => setStatus(v.id, 'RIFIUTATO')}>
+                                Rifiuta
+                              </Button>
+                            </>
+                          )}
+                          {canCreateJob && v.status === 'ACCETTATO' && (
+                            <Button size="small" variant="contained" color="success" onClick={() => createJob(v.id)}>
+                              Crea Job
                             </Button>
-                            <Button size="small" onClick={() => setStatus(v.id, 'ACCETTATO')}>
-                              Accetta
-                            </Button>
-                            <Button size="small" onClick={() => setStatus(v.id, 'RIFIUTATO')}>
-                              Rifiuta
-                            </Button>
-                          </>
-                        )}
+                          )}
+                        </Stack>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-            </>
+            </TableContainer>
           )}
-        </Box>
+        </Paper>
       </Box>
 
       <Dialog open={openQ} onClose={() => setOpenQ(false)} maxWidth="sm" fullWidth>

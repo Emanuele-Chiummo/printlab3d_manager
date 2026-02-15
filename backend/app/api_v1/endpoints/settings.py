@@ -15,6 +15,10 @@ class PreventivoSettings(BaseModel):
     fattore_rischio_pct: float
     consumabili_eur_stampa: float
     soglia_filamento_basso_g: float
+    company_name: str
+    company_address: str
+    company_email: str
+    company_phone: str
 
 
 def get_db():
@@ -34,7 +38,11 @@ def get_preventivo_settings(db: Session = Depends(get_db)):
         overhead_pct=s.overhead_pct,
         fattore_rischio_pct=s.fattore_rischio_pct,
         consumabili_eur_stampa=s.consumabili_eur_stampa,
-        soglia_filamento_basso_g=s.soglia_filamento_basso_g
+        soglia_filamento_basso_g=s.soglia_filamento_basso_g,
+        company_name=s.company_name,
+        company_address=s.company_address,
+        company_email=s.company_email,
+        company_phone=s.company_phone
     )
 
 @router.post('/preventivo', response_model=PreventivoSettings)
@@ -47,5 +55,9 @@ def set_preventivo_settings(data: PreventivoSettings, db: Session = Depends(get_
         overhead_pct=s.overhead_pct,
         fattore_rischio_pct=s.fattore_rischio_pct,
         consumabili_eur_stampa=s.consumabili_eur_stampa,
-        soglia_filamento_basso_g=s.soglia_filamento_basso_g
+        soglia_filamento_basso_g=s.soglia_filamento_basso_g,
+        company_name=s.company_name,
+        company_address=s.company_address,
+        company_email=s.company_email,
+        company_phone=s.company_phone
     )

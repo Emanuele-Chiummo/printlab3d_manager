@@ -2,7 +2,9 @@ import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
   AppBar,
+  Avatar,
   Box,
+  Chip,
   CssBaseline,
   Divider,
   Drawer,
@@ -11,12 +13,11 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Menu,
+  MenuItem,
   Toolbar,
   Typography,
   useMediaQuery,
-  Avatar,
-  Menu,
-  MenuItem,
 } from '@mui/material'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import Inventory2Icon from '@mui/icons-material/Inventory2'
@@ -28,10 +29,12 @@ import EuroIcon from '@mui/icons-material/Euro'
 import SettingsIcon from '@mui/icons-material/Settings'
 import MenuIcon from '@mui/icons-material/Menu'
 import LogoutIcon from '@mui/icons-material/Logout'
-import { useAuth } from '../components/AuthProvider'
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount'
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
+import { useAuth } from '../components/AuthProvider'
 
 const drawerWidth = 260
+const contentMaxWidth = 1320
 
 type NavItem = { label: string; icon: React.ReactNode; to: string }
 
@@ -46,12 +49,33 @@ const items: NavItem[] = [
   { label: 'Impostazioni', icon: <SettingsIcon />, to: '/impostazioni' },
 ]
 
+const pageMeta: Record<string, { title: string; subtitle: string }> = {
+  '/': { title: 'Panoramica generale', subtitle: 'Controlla performance e produzione' },
+  '/filamenti': { title: 'Magazzino filamenti', subtitle: 'Gestisci materiali e scorte' },
+  '/ubicazioni': { title: 'Ubicazioni', subtitle: 'Traccia shelf e posizioni' },
+  '/clienti': { title: 'Clienti', subtitle: 'Gestisci relazioni e attività' },
+  '/preventivi': { title: 'Preventivi', subtitle: 'Crea e monitora le offerte' },
+  '/job': { title: 'Job di stampa', subtitle: 'Supervisiona produzione e costi' },
+  '/costi': { title: 'Costi operativi', subtitle: 'Controlla analisi e movimenti' },
+  '/utenti': { title: 'Team & permessi', subtitle: 'Amministra gli accessi' },
+  '/impostazioni': { title: 'Impostazioni', subtitle: 'Configura l’esperienza PrintLab' },
+}
+
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation()
   const { user, logout } = useAuth()
   const isMobile = useMediaQuery('(max-width:900px)')
   const [open, setOpen] = React.useState(!isMobile)
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
+  const currentMeta = pageMeta[location.pathname] ?? {
+    title: 'Gestionale PrintLab',
+    subtitle: 'Controlla produzione e margini',
+  }
+
+  const todayLabel = React.useMemo(
+    () => new Intl.DateTimeFormat('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()),
+    []
+  )
 
   React.useEffect(() => {
     setOpen(!isMobile)
@@ -70,65 +94,128 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     logout()
   }
 
+  const navItems = React.useMemo(() => {
+    const nav = [...items]
+    if (user?.role === 'ADMIN') {
+      nav.push({ label: 'Utenti', icon: <SupervisorAccountIcon />, to: '/utenti' })
+    }
+    return nav
+  }, [user])
+
   const drawer = (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Toolbar sx={{ p: 2, background: 'linear-gradient(135deg, #0055cc 0%, #003d99 100%)', color: '#fff' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <PrintIcon sx={{ fontSize: 28 }} />
-          <Typography variant="h6" noWrap sx={{ fontWeight: 700 }}>
-            PrintLab
-          </Typography>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+      <Box
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(160deg, rgba(255,255,255,0.6) 0%, rgba(148, 207, 255, 0.25) 100%)',
+          pointerEvents: 'none',
+        }}
+      />
+      <Toolbar sx={{ p: 2.5, alignItems: 'flex-start' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box
+              sx={{
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                background: 'linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)',
+                display: 'grid',
+                placeItems: 'center',
+                color: '#fff',
+              }}
+            >
+              <PrintIcon sx={{ fontSize: 22 }} />
+            </Box>
+            <Box>
+              <Typography variant="h6" noWrap sx={{ fontWeight: 700 }}>
+                PrintLab OS
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#52607c', letterSpacing: 1 }}>
+                Manufacturing Hub
+              </Typography>
+            </Box>
+          </Box>
+          <Chip
+            label="Produzione 3D"
+            size="small"
+            sx={{ alignSelf: 'flex-start', background: 'rgba(37,99,235,0.12)', color: '#1d4ed8', fontWeight: 600 }}
+          />
         </Box>
       </Toolbar>
-      <Divider />
+      <Box sx={{ px: 3, py: 1 }}>
+        <Typography variant="overline" sx={{ color: '#94a3b8', letterSpacing: 1 }}>
+          Navigazione
+        </Typography>
+      </Box>
       <List sx={{ flex: 1 }}>
-        {React.useMemo(() => {
-          let nav = [...items]
-          if (user?.role === 'ADMIN') {
-            nav.push({ label: 'Utenti', icon: <SupervisorAccountIcon />, to: '/utenti' })
-          }
-          return nav
-        }, [user]).map((item) => (
-          <ListItemButton
-            key={item.to}
-            component={Link}
-            to={item.to}
-            selected={location.pathname === item.to}
-            sx={{
-              mx: 1,
-              my: 0.5,
-              borderRadius: 1,
-              color: location.pathname === item.to ? '#0055cc' : 'text.primary',
-              backgroundColor: location.pathname === item.to ? '#eff6ff' : 'transparent',
-              fontWeight: location.pathname === item.to ? 600 : 400,
-              '&:hover': {
-                backgroundColor: location.pathname === item.to ? '#eff6ff' : '#f3f4f6',
-              },
-            }}
-          >
-            <ListItemIcon
-              sx={{ color: location.pathname === item.to ? '#0055cc' : 'inherit', minWidth: 40 }}
+        {navItems.map((item) => {
+          const selected = location.pathname === item.to
+          return (
+            <ListItemButton
+              key={item.to}
+              component={Link}
+              to={item.to}
+              selected={selected}
+              sx={{
+                position: 'relative',
+                overflow: 'hidden',
+                '&::before': selected
+                  ? {
+                      content: '""',
+                      position: 'absolute',
+                      left: 6,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      width: 4,
+                      height: 24,
+                      borderRadius: 999,
+                      background: 'linear-gradient(180deg, #2563eb 0%, #0ea5e9 100%)',
+                    }
+                  : undefined,
+              }}
             >
-              {item.icon}
-            </ListItemIcon>
-            <ListItemText primary={item.label} />
-          </ListItemButton>
-        ))}
+              <ListItemIcon sx={{ color: selected ? '#2563eb' : '#52607c', minWidth: 40 }}>{item.icon}</ListItemIcon>
+              <ListItemText
+                primary={item.label}
+                primaryTypographyProps={{ fontWeight: selected ? 700 : 500, color: selected ? '#0f172a' : '#1f2937' }}
+              />
+            </ListItemButton>
+          )
+        })}
       </List>
-      <Divider />
-      <Box sx={{ p: 2, background: '#f9fafb' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <Avatar sx={{ width: 40, height: 40, background: 'linear-gradient(135deg, #0055cc 0%, #003d99 100%)' }}>
-            {(user?.full_name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
-          </Avatar>
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography variant="body2" sx={{ fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {user?.full_name || user?.email}
-            </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-              {user?.role === 'ADMIN' ? 'Amministratore' : user?.role}
-            </Typography>
+      <Box sx={{ p: 3 }}>
+        <Box
+          sx={{
+            background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(219,234,254,0.85))',
+            borderRadius: '16px',
+            p: 2.5,
+            border: '1px solid rgba(148,163,184,0.2)',
+            boxShadow: '0 30px 65px -50px rgba(15,23,42,0.65)',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+            <Avatar sx={{ width: 44, height: 44, bgcolor: '#dbeafe', color: '#1d4ed8', fontWeight: 700 }}>
+              {(user?.full_name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
+            </Avatar>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 600, color: '#0f172a', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}
+              >
+                {user?.full_name || user?.email}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#64748b' }}>
+                {user?.role === 'ADMIN' ? 'Amministratore' : user?.role}
+              </Typography>
+            </Box>
           </Box>
+          <Divider sx={{ borderColor: 'rgba(15,23,42,0.05)', mb: 1.5 }} />
+          <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+            Ultimo accesso sincronizzato automaticamente.
+          </Typography>
         </Box>
       </Box>
     </Box>
@@ -137,34 +224,75 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
-      <AppBar position="fixed" sx={{ zIndex: (t) => t.zIndex.drawer + 1 }}>
-        <Toolbar>
-          {isMobile && (
-            <IconButton edge="start" color="inherit" onClick={() => setOpen((s) => !s)}>
-              <MenuIcon />
-            </IconButton>
-          )}
-          <Typography variant="h6" sx={{ ml: isMobile ? 1 : 0, fontWeight: 600 }}>
-            Gestionale Stampa 3D
-          </Typography>
-          <Box sx={{ flexGrow: 1 }} />
-          <IconButton color="inherit" onClick={handleMenuOpen}>
-            <Avatar sx={{ width: 36, height: 36, background: 'rgba(255,255,255,0.2)', fontSize: '0.9rem' }}>
-              {(user?.full_name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
-            </Avatar>
-          </IconButton>
-          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-            <MenuItem disabled>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                {user?.full_name || user?.email}
+      <AppBar
+        position="fixed"
+        sx={{
+          zIndex: (t) => t.zIndex.drawer + 1,
+          backgroundColor: '#ffffffeb',
+          color: '#0f172a',
+          boxShadow: '0 1px 4px rgba(15,23,42,0.08)',
+          borderBottom: '1px solid rgba(15,23,42,0.05)',
+          backdropFilter: 'blur(14px)',
+          borderRadius: 0,
+        }}
+      >
+        <Toolbar sx={{ minHeight: 'auto', py: { xs: 0.5, md: 1 } }}>
+          <Box
+            sx={{
+              width: '100%',
+              maxWidth: contentMaxWidth,
+              mx: 'auto',
+              px: { xs: 2, md: 4 },
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+            }}
+          >
+            {isMobile && (
+              <IconButton edge="start" color="inherit" onClick={() => setOpen((s) => !s)}>
+                <MenuIcon />
+              </IconButton>
+            )}
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                {currentMeta.title}
               </Typography>
-            </MenuItem>
-            <Divider />
-            <MenuItem onClick={handleLogout} sx={{ color: '#ef4444' }}>
-              <LogoutIcon sx={{ mr: 1, fontSize: 20 }} />
-              Logout
-            </MenuItem>
-          </Menu>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                {currentMeta.subtitle}
+              </Typography>
+            </Box>
+            <Box sx={{ flexGrow: 1 }} />
+            <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
+                <CalendarTodayIcon sx={{ fontSize: 18 }} />
+                <Typography variant="body2" sx={{ fontWeight: 500, textTransform: 'capitalize' }}>
+                  {todayLabel}
+                </Typography>
+              </Box>
+              <Chip
+                label={user?.role === 'ADMIN' ? 'Admin' : user?.role || 'Utente'}
+                color="primary"
+                sx={{ fontWeight: 600, background: 'rgba(37,99,235,0.12)', color: '#1d4ed8' }}
+              />
+            </Box>
+            <IconButton color="inherit" onClick={handleMenuOpen}>
+              <Avatar sx={{ width: 40, height: 40, background: '#2563eb', fontSize: '0.9rem' }}>
+                {(user?.full_name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
+              </Avatar>
+            </IconButton>
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+              <MenuItem disabled>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {user?.full_name || user?.email}
+                </Typography>
+              </MenuItem>
+              <Divider />
+              <MenuItem onClick={handleLogout} sx={{ color: '#ef4444' }}>
+                <LogoutIcon sx={{ mr: 1, fontSize: 20 }} />
+                Logout
+              </MenuItem>
+            </Menu>
+          </Box>
         </Toolbar>
       </AppBar>
 
@@ -184,12 +312,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           },
         }}
       >
+        {!isMobile && <Toolbar sx={{ minHeight: 'auto', py: { xs: 0.5, md: 1 } }} />}
         {drawer}
       </Drawer>
 
-      <Box component="main" sx={{ flexGrow: 1, p: 3, backgroundColor: '#f9fafb', minHeight: '100vh' }}>
-        <Toolbar />
-        {children}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          minHeight: '100vh',
+          background: 'radial-gradient(circle at top, rgba(148,163,255,0.18), transparent 55%)',
+        }}
+      >
+        <Toolbar sx={{ minHeight: 'auto', py: { xs: 0.5, md: 1 } }} />
+        <Box sx={{ width: '100%', maxWidth: contentMaxWidth, mx: 'auto', px: { xs: 2, md: 4 }, pb: 6 }}>{children}</Box>
       </Box>
     </Box>
   )

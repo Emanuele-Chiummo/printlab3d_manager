@@ -32,6 +32,7 @@ class Job(Base, TimestampMixin, AuditUserMixin):
         return JobStatus(self.status)
 
     # Consuntivi
+    quantita_prodotta: Mapped[int] = mapped_column(Integer, default=1)
     tempo_reale_min: Mapped[int] = mapped_column(Integer, default=0)
     energia_kwh: Mapped[float] = mapped_column(Numeric(10, 3), default=0)
     scarti_g: Mapped[int] = mapped_column(Integer, default=0)

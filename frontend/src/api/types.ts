@@ -78,7 +78,9 @@ export interface Job {
   note: any;
   id: number
   quote_version_id: number
+  quote_code: string  // Codice preventivo di riferimento
   status: string
+  quantita_prodotta: number
   tempo_reale_min: number
   energia_kwh: number
   scarti_g: number

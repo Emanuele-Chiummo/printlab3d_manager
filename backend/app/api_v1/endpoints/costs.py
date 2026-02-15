@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -80,6 +80,20 @@ def create_entry(payload: CostEntryCreate, db: Session = Depends(get_db), curren
     log_action(db, current.id, "CostEntry", e.id, "CREATE")
     db.commit()
     return e
+
+
+@router.delete(
+    "/entries/{entry_id}",
+    dependencies=[Depends(require_roles(UserRole.admin, UserRole.operator))],
+)
+def delete_entry(entry_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    entry = db.get(CostEntry, entry_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Costo non trovato")
+    log_action(db, current.id, "CostEntry", entry.id, "DELETE")
+    db.delete(entry)
+    db.commit()
+    return {"ok": True}
 
 
 @router.get("/reports/monthly", response_model=list[MonthlyCostReportItem])

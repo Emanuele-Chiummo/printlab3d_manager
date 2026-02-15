@@ -3,11 +3,13 @@ from sqlalchemy.orm import Session
 
 from app.api_v1.deps import get_db, get_current_user, require_roles
 from app.models.quote import Quote, QuoteLine, QuoteVersion, QuoteStatus
+from app.models.job import Job
 from app.models.user import User, UserRole
 from app.schemas.quote import QuoteCreate, QuoteOut, QuoteVersionCreate, QuoteVersionOut, QuoteVersionUpdate
 from app.services.audit import log_action
 from app.services.quotes import recalc_quote_version
 from app.services.pdf import render_quote_pdf
+from app.db import settings as db_settings
 
 router = APIRouter()
 
@@ -30,6 +32,29 @@ def create_quote(payload: QuoteCreate, db: Session = Depends(get_db), current: U
     log_action(db, current.id, "Quote", q.id, "CREATE")
     db.commit()
     return q
+
+
+@router.delete("/{quote_id}", dependencies=[Depends(require_roles(UserRole.admin, UserRole.sales))])
+def delete_quote(quote_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    q = db.get(Quote, quote_id)
+    if not q:
+        raise HTTPException(status_code=404, detail="Preventivo non trovato")
+    
+    # Validazione: blocca se ci sono versioni accettate con job
+    for version in q.versions:
+        if version.status == QuoteStatus.ACCETTATO:
+            # Controlla se c'è un job collegato
+            job = db.query(Job).filter(Job.quote_version_id == version.id).first()
+            if job:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Impossibile eliminare: versione {version.version_number} accettata con job #{job.id} collegato"
+                )
+    
+    log_action(db, current.id, "Quote", q.id, "DELETE")
+    db.delete(q)
+    db.commit()
+    return {"ok": True}
 
 
 @router.get("/{quote_id}/versions", response_model=list[QuoteVersionOut])
@@ -107,7 +132,8 @@ def download_pdf(version_id: int, db: Session = Depends(get_db), _: User = Depen
         raise HTTPException(status_code=404, detail="Preventivo non trovato")
     # eager load customer
     _ = quote.customer
-    pdf_bytes, filename = render_quote_pdf(quote, qv)
+    settings = db_settings.get_settings(db)
+    pdf_bytes, filename = render_quote_pdf(quote, qv, settings)
     return Response(content=pdf_bytes, media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename={filename}"})
 
 

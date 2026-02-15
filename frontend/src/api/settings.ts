@@ -8,6 +8,10 @@ export type PreventivoSettings = {
   fattore_rischio_pct: number
   consumabili_eur_stampa: number
   soglia_filamento_basso_g: number
+  company_name: string
+  company_address: string
+  company_email: string
+  company_phone: string
 }
 
 export async function getPreventivoSettings(): Promise<PreventivoSettings> {
