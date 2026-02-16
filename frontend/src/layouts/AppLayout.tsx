@@ -286,6 +286,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             border: 'none',
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
             pt: { xs: '56px', md: 0 },
+            height: { xs: '100vh', md: 'auto' },
           },
         }}
       >
