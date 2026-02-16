@@ -135,36 +135,36 @@ export default function StampantiPage() {
       <Box
         sx={{
           display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          alignItems: { md: 'center' },
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'stretch', sm: 'center' },
           justifyContent: 'space-between',
-          mt: 3,
-          mb: 3,
-          gap: 2,
+          mt: { xs: 2, md: 3 },
+          mb: { xs: 2, md: 3 },
+          gap: { xs: 2, sm: 2 },
         }}
       >
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, fontSize: { xs: '1.25rem', md: '1.5rem' } }}>
             Stampanti
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: { xs: '0.8rem', md: '0.875rem' } }}>
             Gestisci le tue stampanti 3D e monitora il loro stato.
           </Typography>
         </Box>
         {canWrite && (
-          <Button variant="contained" onClick={onNew}>
+          <Button variant="contained" onClick={onNew} sx={{ width: { xs: '100%', sm: 'auto' }, fontWeight: 600 }}>
             Nuova stampante
           </Button>
         )}
       </Box>
 
-      <Paper sx={{ p: 2.5 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+      <Paper sx={{ p: { xs: 1.5, sm: 2, md: 2.5 } }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2, gap: 1 }}>
           <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: '0.95rem', md: '1rem' } }}>
               Parco macchine
             </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.75rem', md: '0.8rem' } }}>
               {rows.length} stampanti registrate
             </Typography>
           </Box>
@@ -174,7 +174,7 @@ export default function StampantiPage() {
             <Typography variant="body2">Non ci sono ancora stampanti registrate.</Typography>
           </Box>
         ) : (
-          <TableContainer sx={{ maxHeight: 520 }}>
+          <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: 'auto', overflowY: 'auto' }}>
             <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
@@ -255,42 +255,42 @@ export default function StampantiPage() {
         )}
       </Paper>
 
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>{editing ? 'Modifica stampante' : 'Nuova stampante'}</DialogTitle>
-        <DialogContent>
+      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontSize: { xs: '1.1rem', md: '1.25rem' } }}>{editing ? 'Modifica stampante' : 'Nuova stampante'}</DialogTitle>
+        <DialogContent sx={{ p: { xs: 2, md: 3 } }}>
           <Box sx={{ display: 'grid', gap: 2, mt: 1, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
             <TextField
               label="Nome"
               value={form.nome || ''}
               onChange={(e) => setForm((s) => ({ ...s, nome: e.target.value }))}
-              fullWidth
+              size="small"
             />
             <TextField
               label="Modello"
               value={form.modello || ''}
               onChange={(e) => setForm((s) => ({ ...s, modello: e.target.value }))}
-              fullWidth
+              size="small"
             />
             <TextField
               label="Potenza (W)"
               type="number"
               value={form.potenza_w ?? ''}
               onChange={(e) => setForm((s) => ({ ...s, potenza_w: Number(e.target.value) }))}
-              fullWidth
+              size="small"
             />
             <TextField
               label="Costo macchina (€)"
               type="number"
               value={form.costo_macchina_eur ?? ''}
               onChange={(e) => setForm((s) => ({ ...s, costo_macchina_eur: Number(e.target.value) }))}
-              fullWidth
+              size="small"
             />
             <TextField
               label="Vita stimata (ore)"
               type="number"
               value={form.vita_stimata_h ?? 8000}
               onChange={(e) => setForm((s) => ({ ...s, vita_stimata_h: Number(e.target.value) }))}
-              fullWidth
+              size="small"
             />
             <TextField
               label="Manutenzione (€/h)"
@@ -298,7 +298,7 @@ export default function StampantiPage() {
               inputProps={{ step: '0.01' }}
               value={form.manutenzione_eur_h ?? 0.20}
               onChange={(e) => setForm((s) => ({ ...s, manutenzione_eur_h: Number(e.target.value) }))}
-              fullWidth
+              size="small"
             />
             <TextField
               label="Deprezzamento (€/h)"
@@ -308,8 +308,8 @@ export default function StampantiPage() {
                   : '0.0000'
               }
               InputProps={{ readOnly: true }}
-              fullWidth
-              helperText="Calcolato: Costo macchina / Vita stimata"
+              helperText="Calcolato: Costo macchina / Vita"
+              size="small"
             />
             <TextField
               label="Totale macchina (€/h)"
@@ -319,16 +319,16 @@ export default function StampantiPage() {
                   : '0.0000'
               }
               InputProps={{ readOnly: true }}
-              fullWidth
               helperText="Calcolato: Deprezzamento + Manutenzione"
               sx={{ '& .MuiInputBase-root': { fontWeight: 600, color: '#1d4ed8' } }}
+              size="small"
             />
             <TextField
               select
               label="Stato"
               value={form.stato || 'ATTIVA'}
               onChange={(e) => setForm((s) => ({ ...s, stato: e.target.value as any }))}
-              fullWidth
+              size="small"
             >
               {statoOptions.map((t) => (
                 <MenuItem key={t} value={t}>
@@ -342,12 +342,12 @@ export default function StampantiPage() {
               onChange={(e) => setForm((s) => ({ ...s, note: e.target.value }))}
               multiline
               rows={3}
-              fullWidth
               sx={{ gridColumn: { md: '1 / -1' } }}
+              size="small"
             />
           </Box>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ p: { xs: 1.5, md: 2 } }}>
           <Button onClick={() => setOpen(false)}>Annulla</Button>
           <Button variant="contained" onClick={onSave}>
             Salva

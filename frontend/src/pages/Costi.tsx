@@ -154,11 +154,11 @@ export default function CostiPage() {
         sx={{
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
-          alignItems: { xs: 'flex-start', sm: 'center' },
+          alignItems: { xs: 'stretch', sm: 'center' },
           justifyContent: 'space-between',
           mt: { xs: 2, md: 3 },
           mb: { xs: 2, md: 3 },
-          gap: { xs: 1.5, sm: 2 },
+          gap: { xs: 2, sm: 2 },
         }}
       >
         <Box>
@@ -171,14 +171,13 @@ export default function CostiPage() {
         </Box>
       </Box>
 
-      <Paper sx={{ p: { xs: 1.5, md: 2 }, mb: 2 }}>
+      <Paper sx={{ p: { xs: 1.5, sm: 2 }, mb: 2 }}>
         <Stack direction="column" spacing={1.5} alignItems="stretch">
           <TextField
             label="Periodo da (YYYY-MM)"
             value={filterFrom}
             onChange={(e) => setFilterFrom(e.target.value)}
             placeholder="2026-02"
-            fullWidth
             size="small"
           />
           <TextField
@@ -186,7 +185,6 @@ export default function CostiPage() {
             value={filterTo}
             onChange={(e) => setFilterTo(e.target.value)}
             placeholder="2026-03"
-            fullWidth
             size="small"
           />
           <TextField
@@ -194,7 +192,6 @@ export default function CostiPage() {
             label="Categoria"
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            fullWidth
             size="small"
           >
             <MenuItem value="">Tutte</MenuItem>
@@ -212,7 +209,7 @@ export default function CostiPage() {
               setFilterSearch(e.target.value)
               setPage(0)
             }}
-            sx={{ width: { xs: '100%', md: 320 } }}
+            size="small"
           />
         </Stack>
       </Paper>
@@ -225,26 +222,26 @@ export default function CostiPage() {
 
       {tab === 0 && (
         <>
-          <Paper sx={{ p: 2.5, mb: 2 }}>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Paper sx={{ p: { xs: 1.5, sm: 2, md: 2.5 }, mb: 2 }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2, gap: 1 }} flexWrap={{ xs: 'wrap', sm: 'nowrap' }}>
               <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: '0.95rem', md: '1rem' } }}>
                   Registrazioni costi
                 </Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.75rem', md: '0.8rem' } }}>
                   {filtered.length} registrazioni visualizzate
                 </Typography>
               </Box>
               {canWriteEntries && (
-                <Button variant="outlined" onClick={() => {
+                <Button variant="outlined" size="small" onClick={() => {
                   setNewEntry((s) => ({ ...s, categoria_id: categories[0]?.id ?? 0 }))
                   setEntryDialog(true)
-                }}>
+                }} sx={{ width: { xs: '100%', sm: 'auto' } }}>
                   Nuovo costo
                 </Button>
               )}
             </Stack>
-            <TableContainer sx={{ maxHeight: 520 }}>
+            <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: 'auto', overflowY: 'auto' }}>
               <Table size="small" stickyHeader>
                 <TableHead>
                   <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
@@ -363,23 +360,23 @@ export default function CostiPage() {
 
       {tab === 1 && (
         <>
-          <Paper sx={{ p: 2.5 }}>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Paper sx={{ p: { xs: 1.5, sm: 2, md: 2.5 } }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2, gap: 1 }} flexWrap={{ xs: 'wrap', sm: 'nowrap' }}>
               <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: '0.95rem', md: '1rem' } }}>
                   Categorie costo
                 </Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.75rem', md: '0.8rem' } }}>
                   {categories.length} categorie disponibili
                 </Typography>
               </Box>
               {canWriteCategories && (
-                <Button variant="outlined" onClick={() => setCatDialog(true)}>
+                <Button variant="outlined" size="small" onClick={() => setCatDialog(true)} sx={{ width: { xs: '100%', sm: 'auto' } }}>
                   Nuova categoria
                 </Button>
               )}
             </Stack>
-            <TableContainer sx={{ maxHeight: 520 }}>
+            <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: 'auto', overflowY: 'auto' }}>
               <Table size="small" stickyHeader>
                 <TableHead>
                   <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
@@ -400,14 +397,14 @@ export default function CostiPage() {
           </Paper>
 
           <Dialog open={catDialog} onClose={() => setCatDialog(false)} maxWidth="sm" fullWidth>
-            <DialogTitle>Nuova categoria</DialogTitle>
-            <DialogContent>
+            <DialogTitle sx={{ fontSize: { xs: '1.1rem', md: '1.25rem' } }}>Nuova categoria</DialogTitle>
+            <DialogContent sx={{ p: { xs: 2, md: 3 } }}>
               <Box sx={{ display: 'grid', gap: 2, mt: 1 }}>
-                <TextField label="Nome" value={newCat.nome} onChange={(e) => setNewCat((s) => ({ ...s, nome: e.target.value }))} />
-                <TextField label="Descrizione" value={newCat.descrizione} onChange={(e) => setNewCat((s) => ({ ...s, descrizione: e.target.value }))} multiline minRows={2} />
+                <TextField label="Nome" value={newCat.nome} onChange={(e) => setNewCat((s) => ({ ...s, nome: e.target.value }))} size="small" />
+                <TextField label="Descrizione" value={newCat.descrizione} onChange={(e) => setNewCat((s) => ({ ...s, descrizione: e.target.value }))} multiline minRows={2} size="small" />
               </Box>
             </DialogContent>
-            <DialogActions>
+            <DialogActions sx={{ p: { xs: 1.5, md: 2 } }}>
               <Button onClick={() => setCatDialog(false)}>Annulla</Button>
               <Button variant="contained" onClick={createCategory}>Salva</Button>
             </DialogActions>

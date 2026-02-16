@@ -84,11 +84,11 @@ export default function ClientiPage() {
         sx={{
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
-          alignItems: { xs: 'flex-start', sm: 'center' },
+          alignItems: { xs: 'stretch', sm: 'center' },
           justifyContent: 'space-between',
           mt: { xs: 2, md: 3 },
           mb: { xs: 2, md: 3 },
-          gap: { xs: 1.5, sm: 2 },
+          gap: { xs: 2, sm: 2 },
         }}
       >
         <Box>
@@ -100,24 +100,24 @@ export default function ClientiPage() {
           </Typography>
         </Box>
         {canWrite && (
-          <Button variant="contained" onClick={onNew} sx={{ minWidth: { xs: '100%', sm: 'auto' } }}>
+          <Button variant="contained" onClick={onNew} sx={{ width: { xs: '100%', sm: 'auto' }, fontWeight: 600 }}>
             Nuovo cliente
           </Button>
         )}
       </Box>
 
-      <Paper sx={{ p: { xs: 1.5, md: 2.5 } }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+      <Paper sx={{ p: { xs: 1.5, sm: 2, md: 2.5 } }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2, gap: 1 }}>
           <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: '0.95rem', md: '1rem' } }}>
               Elenco clienti
             </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.75rem', md: '0.8rem' } }}>
               {rows.length} clienti registrati
             </Typography>
           </Box>
         </Stack>
-        <TableContainer sx={{ maxHeight: 520, overflowX: 'auto' }}>
+        <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: 'auto', overflowY: 'auto' }}>
           <Table size="small" stickyHeader>
             <TableHead>
               <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
@@ -171,8 +171,10 @@ export default function ClientiPage() {
       </Paper>
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editing ? 'Modifica cliente' : 'Nuovo cliente'}</DialogTitle>
-        <DialogContent>
+        <DialogTitle sx={{ fontSize: { xs: '1.1rem', md: '1.25rem' } }}>
+          {editing ? 'Modifica cliente' : 'Nuovo cliente'}
+        </DialogTitle>
+        <DialogContent sx={{ p: { xs: 2, md: 3 } }}>
           <Box sx={{ display: 'grid', gap: 2, mt: 1, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
             <TextField
               select
@@ -181,29 +183,65 @@ export default function ClientiPage() {
               onChange={(e) => setForm((s) => ({ ...s, tipo_cliente: e.target.value }))}
               SelectProps={{ native: true }}
               sx={{ gridColumn: { md: '1 / -1' } }}
+              size="small"
             >
               <option value="DITTA">Ditta</option>
               <option value="PERSONA">Persona</option>
             </TextField>
             {form.tipo_cliente === 'DITTA' ? (
               <>
-                <TextField label="Ragione sociale" value={form.ragione_sociale || ''} onChange={(e) => setForm((s) => ({ ...s, ragione_sociale: e.target.value }))} sx={{ gridColumn: { md: '1 / -1' } }} />
-                <TextField label="P.IVA" value={form.piva || ''} onChange={(e) => setForm((s) => ({ ...s, piva: e.target.value }))} />
+                <TextField
+                  label="Ragione sociale"
+                  value={form.ragione_sociale || ''}
+                  onChange={(e) => setForm((s) => ({ ...s, ragione_sociale: e.target.value }))}
+                  sx={{ gridColumn: { md: '1 / -1' } }}
+                  size="small"
+                />
+                <TextField
+                  label="P.IVA"
+                  value={form.piva || ''}
+                  onChange={(e) => setForm((s) => ({ ...s, piva: e.target.value }))}
+                  size="small"
+                />
               </>
             ) : (
               <>
-                <TextField label="Nome" value={form.nome || ''} onChange={(e) => setForm((s) => ({ ...s, nome: e.target.value }))} />
-                <TextField label="Cognome" value={form.cognome || ''} onChange={(e) => setForm((s) => ({ ...s, cognome: e.target.value }))} />
-                <TextField label="Codice fiscale" value={form.codice_fiscale || ''} onChange={(e) => setForm((s) => ({ ...s, codice_fiscale: e.target.value }))} />
+                <TextField label="Nome" value={form.nome || ''} onChange={(e) => setForm((s) => ({ ...s, nome: e.target.value }))} size="small" />
+                <TextField
+                  label="Cognome"
+                  value={form.cognome || ''}
+                  onChange={(e) => setForm((s) => ({ ...s, cognome: e.target.value }))}
+                  size="small"
+                />
+                <TextField
+                  label="Codice fiscale"
+                  value={form.codice_fiscale || ''}
+                  onChange={(e) => setForm((s) => ({ ...s, codice_fiscale: e.target.value }))}
+                  size="small"
+                />
               </>
             )}
-            <TextField label="Email" value={form.email || ''} onChange={(e) => setForm((s) => ({ ...s, email: e.target.value }))} />
-            <TextField label="Telefono" value={form.telefono || ''} onChange={(e) => setForm((s) => ({ ...s, telefono: e.target.value }))} />
-            <TextField label="Indirizzo" value={form.indirizzo || ''} onChange={(e) => setForm((s) => ({ ...s, indirizzo: e.target.value }))} sx={{ gridColumn: { md: '1 / -1' } }} />
-            <TextField label="Note" value={form.note || ''} onChange={(e) => setForm((s) => ({ ...s, note: e.target.value }))} multiline minRows={2} sx={{ gridColumn: { md: '1 / -1' } }} />
+            <TextField label="Email" value={form.email || ''} onChange={(e) => setForm((s) => ({ ...s, email: e.target.value }))} size="small" />
+            <TextField label="Telefono" value={form.telefono || ''} onChange={(e) => setForm((s) => ({ ...s, telefono: e.target.value }))} size="small" />
+            <TextField
+              label="Indirizzo"
+              value={form.indirizzo || ''}
+              onChange={(e) => setForm((s) => ({ ...s, indirizzo: e.target.value }))}
+              sx={{ gridColumn: { md: '1 / -1' } }}
+              size="small"
+            />
+            <TextField
+              label="Note"
+              value={form.note || ''}
+              onChange={(e) => setForm((s) => ({ ...s, note: e.target.value }))}
+              multiline
+              minRows={2}
+              sx={{ gridColumn: { md: '1 / -1' } }}
+              size="small"
+            />
           </Box>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ p: { xs: 1.5, md: 2 } }}>
           <Button onClick={() => setOpen(false)}>Annulla</Button>
           <Button variant="contained" onClick={onSave}>
             Salva

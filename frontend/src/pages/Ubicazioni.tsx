@@ -85,36 +85,36 @@ export default function UbicazioniPage() {
       <Box
         sx={{
           display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          alignItems: { md: 'center' },
-          justifyContent: 'space-between',
-          mt: 3,
-          mb: 3,
-          gap: 2,
-        }}
-      >
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            Ubicazioni
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            Traccia magazzini, scaffali e slot con una vista ordinata.
-          </Typography>
-        </Box>
-        {canWrite && (
-          <Button variant="contained" onClick={onNew}>
-            Nuova ubicazione
-          </Button>
-        )}
+        flexDirection: { xs: 'column', sm: 'row' },
+        alignItems: { xs: 'stretch', md: 'center' },
+        justifyContent: 'space-between',
+        mt: 3,
+        mb: 3,
+        gap: { xs: 2, md: 2 },
+      }}
+    >
+      <Box>
+        <Typography variant="h5" sx={{ fontWeight: 700, fontSize: { xs: '1.25rem', md: '1.5rem' } }}>
+          Ubicazioni
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: { xs: '0.8rem', md: '0.875rem' } }}>
+          Traccia magazzini, scaffali e slot con una vista ordinata.
+        </Typography>
+      </Box>
+      {canWrite && (
+        <Button variant="contained" onClick={onNew} sx={{ width: { xs: '100%', sm: 'auto' }, fontWeight: 600 }}>
+          Nuova ubicazione
+        </Button>
+      )}
       </Box>
 
-      <Paper sx={{ p: 2.5 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+      <Paper sx={{ p: { xs: 1.5, sm: 2, md: 2.5 } }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2, gap: 1, flexWrap: { xs: 'wrap', sm: 'nowrap' } }}>
           <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: '0.95rem', md: '1rem' } }}>
               Mappa ubicazioni
             </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.75rem', md: '0.8rem' } }}>
               {rows.length} elementi sincronizzati
             </Typography>
           </Box>
@@ -124,7 +124,7 @@ export default function UbicazioniPage() {
             <Typography variant="body2">Non ci sono ancora ubicazioni registrate.</Typography>
           </Box>
         ) : (
-          <TableContainer>
+          <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: 'auto', overflowY: 'auto' }}>
             <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
@@ -173,11 +173,11 @@ export default function UbicazioniPage() {
       </Paper>
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editing ? 'Modifica ubicazione' : 'Nuova ubicazione'}</DialogTitle>
-        <DialogContent>
+        <DialogTitle sx={{ fontSize: { xs: '1.1rem', md: '1.25rem' } }}>{editing ? 'Modifica ubicazione' : 'Nuova ubicazione'}</DialogTitle>
+        <DialogContent sx={{ p: { xs: 2, md: 3 } }}>
           <Box sx={{ display: 'grid', gap: 2, mt: 1, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
-            <TextField label="Nome" value={form.nome || ''} onChange={(e) => setForm((s) => ({ ...s, nome: e.target.value }))} />
-            <TextField select label="Tipo" value={form.tipo || 'SLOT'} onChange={(e) => setForm((s) => ({ ...s, tipo: e.target.value }))}>
+            <TextField size="small" label="Nome" value={form.nome || ''} onChange={(e) => setForm((s) => ({ ...s, nome: e.target.value }))} />
+            <TextField size="small" select label="Tipo" value={form.tipo || 'SLOT'} onChange={(e) => setForm((s) => ({ ...s, tipo: e.target.value }))}>
               {tipoOptions.map((t) => (
                 <MenuItem key={t} value={t}>
                   {t}
@@ -185,6 +185,7 @@ export default function UbicazioniPage() {
               ))}
             </TextField>
             <TextField
+              size="small"
               label="Parent ID"
               type="number"
               value={form.parent_id ?? ''}
@@ -193,7 +194,7 @@ export default function UbicazioniPage() {
             />
           </Box>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ p: { xs: 1.5, md: 2 } }}>
           <Button onClick={() => setOpen(false)}>Annulla</Button>
           <Button variant="contained" onClick={onSave}>
             Salva

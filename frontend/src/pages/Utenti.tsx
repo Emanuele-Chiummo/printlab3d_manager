@@ -69,39 +69,39 @@ export default function UtentiPage() {
       <Box
         sx={{
           display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          alignItems: { md: 'center' },
-          justifyContent: 'space-between',
-          mt: 3,
-          mb: 3,
-          gap: 2,
-        }}
-      >
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            Utenti
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            Gestisci accessi, ruoli e permessi del sistema.
-          </Typography>
-        </Box>
-        <Button variant="contained" onClick={onNew}>
-          Nuovo utente
-        </Button>
+        flexDirection: { xs: 'column', sm: 'row' },
+        alignItems: { xs: 'stretch', md: 'center' },
+        justifyContent: 'space-between',
+        mt: 3,
+        mb: 3,
+        gap: { xs: 2, md: 2 },
+      }}
+    >
+      <Box>
+        <Typography variant="h5" sx={{ fontWeight: 700, fontSize: { xs: '1.25rem', md: '1.5rem' } }}>
+          Utenti
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: { xs: '0.8rem', md: '0.875rem' } }}>
+          Gestisci accessi, ruoli e permessi del sistema.
+        </Typography>
+      </Box>
+      <Button variant="contained" onClick={onNew} sx={{ width: { xs: '100%', sm: 'auto' }, fontWeight: 600 }}>
+        Nuovo utente
+      </Button>
       </Box>
 
-      <Paper sx={{ p: 2.5 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+      <Paper sx={{ p: { xs: 1.5, sm: 2, md: 2.5 } }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2, gap: 1, flexWrap: { xs: 'wrap', sm: 'nowrap' } }}>
           <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: '0.95rem', md: '1rem' } }}>
               Elenco utenti
             </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.75rem', md: '0.8rem' } }}>
               {rows.length} utenti registrati
             </Typography>
           </Box>
         </Stack>
-        <TableContainer sx={{ maxHeight: 520 }}>
+        <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: 'auto', overflowY: 'auto' }}>
           <Table size="small" stickyHeader>
             <TableHead>
               <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
@@ -153,19 +153,19 @@ export default function UtentiPage() {
       </Paper>
       
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Nuovo Utente</DialogTitle>
-        <DialogContent>
+        <DialogTitle sx={{ fontSize: { xs: '1.1rem', md: '1.25rem' } }}>Nuovo Utente</DialogTitle>
+        <DialogContent sx={{ p: { xs: 2, md: 3 } }}>
           <Box sx={{ display: 'grid', gap: 2, mt: 1 }}>
-            <TextField label="Email" value={form.email || ''} onChange={e => setForm(s => ({ ...s, email: e.target.value }))} />
-            <TextField label="Nome completo" value={form.full_name || ''} onChange={e => setForm(s => ({ ...s, full_name: e.target.value }))} />
-            <TextField select label="Ruolo" value={form.role || 'VIEWER'} onChange={e => setForm(s => ({ ...s, role: e.target.value as Role }))}>
+            <TextField size="small" label="Email" value={form.email || ''} onChange={e => setForm(s => ({ ...s, email: e.target.value }))} />
+            <TextField size="small" label="Nome completo" value={form.full_name || ''} onChange={e => setForm(s => ({ ...s, full_name: e.target.value }))} />
+            <TextField size="small" select label="Ruolo" value={form.role || 'VIEWER'} onChange={e => setForm(s => ({ ...s, role: e.target.value as Role }))}>
               {roleOptions.map(r => <MenuItem key={r} value={r}>{r}</MenuItem>)}
             </TextField>
-            <TextField label="Password temporanea" type="password" value={form.password || ''} onChange={e => setForm(s => ({ ...s, password: e.target.value }))} />
+            <TextField size="small" label="Password temporanea" type="password" value={form.password || ''} onChange={e => setForm(s => ({ ...s, password: e.target.value }))} />
           </Box>
           {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ p: { xs: 1.5, md: 2 } }}>
           <Button onClick={() => setOpen(false)}>Annulla</Button>
           <Button variant="contained" onClick={onSave} disabled={loading}>
             {loading ? <CircularProgress size={24} color="inherit" /> : 'Crea'}

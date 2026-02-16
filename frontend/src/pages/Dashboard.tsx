@@ -53,25 +53,44 @@ function KPICard({ label, value, icon, color, bgGradient, supportingText }: KPIC
 
   return (
     <Card sx={{ background: bgGradient, height: '100%', borderRadius: '12px' }} data-animate="rise">
-      <CardContent sx={{ p: 3 }}>
+      <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Box>
-            <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mb: 1 }}>
+          <Box sx={{ flex: 1 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+                fontWeight: 500,
+                mb: 1,
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+              }}
+            >
               {label}
             </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: colorMap[color] }}>
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 700,
+                color: colorMap[color],
+                fontSize: { xs: '1.5rem', sm: '2rem' },
+              }}
+            >
               {value}
             </Typography>
           </Box>
           <Box
             sx={{
               background: bgColorMap[color],
-              p: 1.5,
-              borderRadius: 2,
+              p: 1,
+              borderRadius: 1.5,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: colorMap[color],
+              flexShrink: 0,
+              '& svg': {
+                fontSize: { xs: 20, sm: 24 },
+              },
             }}
           >
             {icon}
@@ -79,8 +98,10 @@ function KPICard({ label, value, icon, color, bgGradient, supportingText }: KPIC
         </Box>
         {supportingText && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 2, color: 'text.secondary' }}>
-            <NorthEastIcon sx={{ fontSize: 16, color: colorMap[color] }} />
-            <Typography variant="caption">{supportingText}</Typography>
+            <NorthEastIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: colorMap[color] }} />
+            <Typography variant="caption" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
+              {supportingText}
+            </Typography>
           </Box>
         )}
       </CardContent>
@@ -167,17 +188,18 @@ export default function Dashboard() {
   ]
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {/* Hero Section */}
       <Box
         data-animate="rise"
         sx={{
           borderRadius: 0,
           background: 'linear-gradient(135deg, #ffffff 0%, #e9f1ff 45%, #dbf7ff 100%)',
           color: '#0f172a',
-          p: { xs: 3, md: 5 },
+          p: { xs: 2, sm: 3, md: 5 },
           overflow: 'hidden',
           position: 'relative',
-          mt: { xs: 2, md: 4 },
+          mt: { xs: 1, md: 4 },
         }}
       >
         <Box
@@ -204,135 +226,185 @@ export default function Dashboard() {
           sx={{
             position: 'relative',
             display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            gap: 4,
+            flexDirection: 'column',
+            gap: { xs: 3, md: 4 },
           }}
         >
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="overline" sx={{ letterSpacing: 2, color: '#94a3b8' }}>
+          {/* Text Content */}
+          <Box>
+            <Typography variant="overline" sx={{ letterSpacing: 2, color: '#94a3b8', fontSize: '0.75rem' }}>
               Control Room
             </Typography>
-            <Typography variant="h3" sx={{ color: '#0f172a', mb: 1 }}>
+            <Typography
+              variant="h4"
+              sx={{
+                color: '#0f172a',
+                mb: 1.5,
+                fontSize: { xs: '1.75rem', sm: '2rem', md: '2.2rem' },
+                fontWeight: 700,
+              }}
+            >
               Ciao {user?.full_name?.split(' ')[0] ?? 'maker'}, ben tornato.
             </Typography>
-            <Typography variant="body1" sx={{ color: '#475467', maxWidth: 520 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: '#475467',
+                maxWidth: '100%',
+                lineHeight: 1.6,
+                fontSize: { xs: '0.9rem', md: '1rem' },
+              }}
+            >
               Controlla in tempo reale marginalità, job e saturazione macchine. Tutti i segnali del laboratorio in un unico luogo.
             </Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 3 }}>
-              <Box
-                sx={{
-                  background: '#eef2ff',
-                  borderRadius: '20px',
-                  px: 3,
-                  py: 1.25,
-                  minWidth: 160,
-                  boxShadow: '0 12px 30px -25px rgba(15,23,42,0.6)',
-                }}
-              >
-                <Typography variant="caption" sx={{ color: '#475467' }}>
-                  Job attivi
-                </Typography>
-                <Typography variant="h5" sx={{ color: '#1d4ed8' }}>
-                  {kpi?.job_in_corso ?? '—'}
-                </Typography>
-              </Box>
-              <Box
-                sx={{
-                  background: '#e0f2fe',
-                  borderRadius: '20px',
-                  px: 3,
-                  py: 1.25,
-                  minWidth: 160,
-                  boxShadow: '0 12px 30px -25px rgba(15,23,42,0.6)',
-                }}
-              >
-                <Typography variant="caption" sx={{ color: '#475467' }}>
-                  Ricavi mese
-                </Typography>
-                <Typography variant="h5" sx={{ color: '#0369a1' }}>
-                  {kpi ? `€${kpi.ricavi_mese_eur.toFixed(2)}` : '—'}
-                </Typography>
-              </Box>
-              <Box
-                sx={{
-                  background: '#f0f9ff',
-                  borderRadius: '20px',
-                  px: 3,
-                  py: 1.25,
-                  minWidth: 160,
-                  boxShadow: '0 12px 30px -25px rgba(15,23,42,0.6)',
-                }}
-              >
-                <Typography variant="caption" sx={{ color: '#475467' }}>
-                  Margine medio
-                </Typography>
-                <Typography variant="h5" sx={{ color: '#0ea5e9' }}>
-                  {kpi ? `${kpi.margine_medio_pct.toFixed(1)}%` : '—'}
-                </Typography>
-              </Box>
-            </Box>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 3 }}>
-              <Button
-                component={RouterLink}
-                to="/preventivi"
-                variant="contained"
-                color="primary"
-                sx={{ boxShadow: 'none' }}
-                endIcon={<NorthEastIcon />}
-              >
-                Apri area Preventivi
-              </Button>
-              <Button component={RouterLink} to="/job" variant="outlined" color="primary" startIcon={<TimelineIcon />}>
-                Vai ai Job
-              </Button>
-            </Stack>
           </Box>
+
+          {/* Quick Stats */}
           <Box
             sx={{
-              background: '#ffffff',
-              borderRadius: '25px',
-              p: 3,
-              border: '1px solid rgba(15,23,42,0.08)',
-              minWidth: { md: 320 },
-              boxShadow: '0 14px 40px -32px rgba(15,23,42,0.5)',
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+              gap: 2,
             }}
           >
-            <Typography variant="subtitle1" sx={{ color: '#0f172a', mb: 2 }}>
+            <Box
+              sx={{
+                background: '#eef2ff',
+                borderRadius: '20px',
+                px: { xs: 2, sm: 2.5 },
+                py: 2,
+                boxShadow: '0 8px 20px -15px rgba(15,23,42,0.4)',
+              }}
+            >
+              <Typography variant="caption" sx={{ color: '#475467', display: 'block', mb: 0.5 }}>
+                Job attivi
+              </Typography>
+              <Typography variant="h5" sx={{ color: '#1d4ed8', fontWeight: 700 }}>
+                {kpi?.job_in_corso ?? '—'}
+              </Typography>
+            </Box>
+            <Box
+              sx={{
+                background: '#e0f2fe',
+                borderRadius: '20px',
+                px: { xs: 2, sm: 2.5 },
+                py: 2,
+                boxShadow: '0 8px 20px -15px rgba(15,23,42,0.4)',
+              }}
+            >
+              <Typography variant="caption" sx={{ color: '#475467', display: 'block', mb: 0.5 }}>
+                Ricavi mese
+              </Typography>
+              <Typography variant="h5" sx={{ color: '#0369a1', fontWeight: 700 }}>
+                {kpi ? `€${kpi.ricavi_mese_eur.toFixed(2)}` : '—'}
+              </Typography>
+            </Box>
+            <Box
+              sx={{
+                background: '#f0f9ff',
+                borderRadius: '20px',
+                px: { xs: 2, sm: 2.5 },
+                py: 2,
+                boxShadow: '0 8px 20px -15px rgba(15,23,42,0.4)',
+              }}
+            >
+              <Typography variant="caption" sx={{ color: '#475467', display: 'block', mb: 0.5 }}>
+                Margine medio
+              </Typography>
+              <Typography variant="h5" sx={{ color: '#0ea5e9', fontWeight: 700 }}>
+                {kpi ? `${kpi.margine_medio_pct.toFixed(1)}%` : '—'}
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Action Buttons */}
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+            <Button
+              component={RouterLink}
+              to="/preventivi"
+              variant="contained"
+              color="primary"
+              sx={{
+                boxShadow: 'none',
+                fontWeight: 600,
+                flex: { xs: 1, sm: 'none' },
+              }}
+              endIcon={<NorthEastIcon />}
+            >
+              Apri area Preventivi
+            </Button>
+            <Button
+              component={RouterLink}
+              to="/job"
+              variant="outlined"
+              color="primary"
+              sx={{ fontWeight: 600, flex: { xs: 1, sm: 'none' } }}
+              startIcon={<TimelineIcon />}
+            >
+              Vai ai Job
+            </Button>
+          </Stack>
+        </Box>
+      </Box>
+
+      {/* Snapshot Operativo - Now below hero on mobile */}
+      <Box
+        sx={{
+          display: { xs: 'block', md: 'none' },
+        }}
+      >
+        <Card
+          sx={{
+            background: '#ffffff',
+            borderRadius: '20px',
+            border: '1px solid rgba(15,23,42,0.08)',
+            boxShadow: '0 10px 30px -20px rgba(15,23,42,0.4)',
+          }}
+        >
+          <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
+            <Typography variant="subtitle1" sx={{ color: '#0f172a', mb: 2, fontWeight: 700 }}>
               Snapshot operativo
             </Typography>
             <Box sx={{ display: 'grid', gap: 2 }}>
               <Box>
-                <Typography variant="body2" sx={{ color: '#64748b' }}>
+                <Typography variant="body2" sx={{ color: '#64748b', mb: 0.5 }}>
                   Margine medio
                 </Typography>
-                <Typography variant="h4" sx={{ color: '#1d4ed8' }}>
+                <Typography variant="h5" sx={{ color: '#1d4ed8', fontWeight: 700 }}>
                   {kpi ? `${kpi.margine_medio_pct.toFixed(1)}%` : '—'}
                 </Typography>
               </Box>
               <Divider sx={{ borderColor: 'rgba(15,23,42,0.08)' }} />
               <Box>
-                <Typography variant="body2" sx={{ color: '#64748b' }}>
+                <Typography variant="body2" sx={{ color: '#64748b', mb: 0.5 }}>
                   Preventivi mese
                 </Typography>
-                <Typography variant="h5" sx={{ color: '#0f172a' }}>
+                <Typography variant="h5" sx={{ color: '#0f172a', fontWeight: 700 }}>
                   {kpi?.preventivi_mese ?? '—'}
                 </Typography>
               </Box>
               <Divider sx={{ borderColor: 'rgba(15,23,42,0.08)' }} />
               <Box>
-                <Typography variant="body2" sx={{ color: '#64748b' }}>
+                <Typography variant="body2" sx={{ color: '#64748b', mb: 0.5 }}>
                   Clienti attivi
                 </Typography>
-                <Typography variant="h5" sx={{ color: '#0f172a' }}>
+                <Typography variant="h5" sx={{ color: '#0f172a', fontWeight: 700 }}>
                   {kpi?.clienti_attivi ?? '—'}
                 </Typography>
               </Box>
             </Box>
-          </Box>
-        </Box>
+          </CardContent>
+        </Card>
       </Box>
 
-      <Grid container spacing={{ xs: 2, md: 3 }}>
+      {/* KPI Grid */}
+      <Grid
+        container
+        spacing={{ xs: 1.5, sm: 2, md: 3 }}
+        sx={{
+          mt: { xs: 1, md: 0 },
+        }}
+      >
         {items.map((it) => (
           <Grid item xs={12} sm={6} md={6} lg={3} key={it.label}>
             <KPICard {...it} />

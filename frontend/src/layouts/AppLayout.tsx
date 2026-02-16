@@ -104,29 +104,29 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }, [user])
 
   const drawer = (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', zIndex: 0, overflow: 'hidden' }}>
       <Box
         sx={{
           position: 'absolute',
           inset: 0,
           background: 'linear-gradient(160deg, rgba(255,255,255,0.6) 0%, rgba(148, 207, 255, 0.25) 100%)',
           pointerEvents: 'none',
+          zIndex: -1,
         }}
       />
-      <Toolbar sx={{ p: 2.5, alignItems: 'flex-start' }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+      <Toolbar sx={{ minHeight: { xs: '48px', md: '64px' }, p: { xs: 1, sm: 2.5 }, alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 1, display: { xs: 'none', sm: 'flex' } }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 0.5, sm: 0.75 }, width: '100%' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box
-              component="img"
+            <img
               src="/logo.svg"
               alt="PrintLab"
-              sx={{ width: 36, height: 36, borderRadius: 2.5, display: 'block' }}
+              style={{ width: 32, height: 32, borderRadius: 4, display: 'block', flexShrink: 0 }}
             />
             <Box>
-              <Typography variant="h6" noWrap sx={{ fontWeight: 700 }}>
+              <Typography variant="h6" noWrap sx={{ fontWeight: 700, fontSize: { xs: '0.9rem', sm: '1.25rem' } }}>
                 PrintLab OS
               </Typography>
-              <Typography variant="caption" sx={{ color: '#52607c', letterSpacing: 1 }}>
+              <Typography variant="caption" sx={{ color: '#52607c', letterSpacing: 1, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
                 Manufacturing Hub
               </Typography>
             </Box>
@@ -134,11 +134,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <Chip
             label="Produzione 3D"
             size="small"
-            sx={{ alignSelf: 'flex-start', background: 'rgba(37,99,235,0.12)', color: '#1d4ed8', fontWeight: 600 }}
+            sx={{ alignSelf: 'flex-start', background: 'rgba(37,99,235,0.12)', color: '#1d4ed8', fontWeight: 600, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
           />
         </Box>
       </Toolbar>
-      <Box sx={{ px: 3, py: 1 }}>
+      <Box sx={{ px: 3, py: 1, pt: { xs: 0, sm: 1 }, display: { xs: 'none', sm: 'block' } }}>
         <Typography variant="overline" sx={{ color: '#94a3b8', letterSpacing: 1 }}>
           Navigazione
         </Typography>
@@ -212,7 +212,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           borderRadius: 0,
         }}
       >
-        <Toolbar sx={{ minHeight: 'auto', py: { xs: 0.5, md: 1 } }}>
+        <Toolbar sx={{ minHeight: { xs: '56px', md: '64px' }, py: { xs: 1, md: 1.5 } }}>
           <Box
             sx={{
               width: '100%',
@@ -285,10 +285,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             backgroundColor: '#ffffff',
             border: 'none',
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+            pt: { xs: '56px', md: 0 },
           },
         }}
       >
-        {!isMobile && <Toolbar sx={{ minHeight: 'auto', py: { xs: 0.5, md: 1 } }} />}
+        {!isMobile && <Toolbar sx={{ minHeight: { xs: '56px', md: '64px' }, py: { xs: 1, md: 1.5 } }} />}
         {drawer}
       </Drawer>
 
@@ -298,10 +299,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           flexGrow: 1,
           minHeight: '100vh',
           background: 'radial-gradient(circle at top, rgba(148,163,255,0.18), transparent 55%)',
+          overflow: { xs: 'hidden', md: 'visible' },
+          mt: { xs: '56px', md: '64px' },
         }}
       >
-        <Toolbar sx={{ minHeight: 'auto', py: { xs: 0.5, md: 1 } }} />
-        <Box sx={{ width: '100%', maxWidth: contentMaxWidth, mx: 'auto', px: { xs: 1.5, sm: 2, md: 4 }, pb: 4 }}>{children}</Box>
+        <Box sx={{ width: '100%', maxWidth: contentMaxWidth, mx: 'auto', px: { xs: 1, sm: 2, md: 4 }, pb: 4, overflow: 'auto' }}>{children}</Box>
       </Box>
     </Box>
   )

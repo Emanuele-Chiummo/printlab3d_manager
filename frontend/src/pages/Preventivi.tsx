@@ -279,19 +279,19 @@ export default function PreventiviPage() {
       <Box
         sx={{
           display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          alignItems: { md: 'center' },
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'stretch', sm: 'center' },
           justifyContent: 'space-between',
-          mt: 3,
-          mb: 3,
-          gap: 2,
+          mt: { xs: 2, md: 3 },
+          mb: { xs: 2, md: 3 },
+          gap: { xs: 2, sm: 2 },
         }}
       >
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, fontSize: { xs: '1.25rem', md: '1.5rem' } }}>
             Preventivi
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: { xs: '0.8rem', md: '0.875rem' } }}>
             Gestisci offerte, versioni e conversione in job da un’unica vista.
           </Typography>
         </Box>
@@ -308,18 +308,18 @@ export default function PreventiviPage() {
       </Box>
 
       <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', lg: '1fr 1.2fr' } }}>
-        <Paper sx={{ p: { xs: 1.5, md: 2.5 } }}>
+        <Paper sx={{ p: { xs: 1.5, sm: 2, md: 2.5 } }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: '0.95rem', md: '1rem' } }}>
                 Elenco preventivi
               </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.75rem', md: '0.8rem' } }}>
                 Ultimi {quotes.length} preventivi inseriti
               </Typography>
             </Box>
           </Stack>
-          <TableContainer sx={{ maxHeight: 520, overflowX: 'auto' }}>
+          <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: 'auto', overflowY: 'auto' }}>
             <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
@@ -350,13 +350,13 @@ export default function PreventiviPage() {
           </TableContainer>
         </Paper>
 
-        <Paper sx={{ p: { xs: 1.5, md: 2.5 } }}>
+        <Paper sx={{ p: { xs: 1.5, sm: 2, md: 2.5 } }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: '0.95rem', md: '1rem' } }}>
                 Versioni e stato
               </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.75rem', md: '0.8rem' } }}>
                 Aggiorna stato, genera PDF e crea job
               </Typography>
             </Box>
@@ -371,7 +371,7 @@ export default function PreventiviPage() {
               <Typography variant="body2">Seleziona un preventivo per vedere i dettagli.</Typography>
             </Box>
           ) : (
-            <TableContainer sx={{ maxHeight: 520, overflowX: 'auto' }}>
+            <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: 'auto', overflowY: 'auto' }}>
               <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
@@ -444,11 +444,11 @@ export default function PreventiviPage() {
       </Box>
 
       <Dialog open={openQ} onClose={() => setOpenQ(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Nuovo preventivo</DialogTitle>
-        <DialogContent>
+        <DialogTitle sx={{ fontSize: { xs: '1.1rem', md: '1.25rem' } }}>Nuovo preventivo</DialogTitle>
+        <DialogContent sx={{ p: { xs: 2, md: 3 } }}>
           <Box sx={{ display: 'grid', gap: 2, mt: 1 }}>
-            <TextField label="Codice" value={qCode} onChange={(e) => setQCode(e.target.value)} />
-            <TextField select label="Cliente" value={qCust} onChange={(e) => setQCust(e.target.value as any)}>
+            <TextField label="Codice" value={qCode} onChange={(e) => setQCode(e.target.value)} size="small" />
+            <TextField select label="Cliente" value={qCust} onChange={(e) => setQCust(e.target.value as any)} size="small">
               {customers.map((c) => (
                 <MenuItem key={c.id} value={c.id}>
                   {c.ragione_sociale && c.ragione_sociale.trim() !== ''
@@ -459,7 +459,7 @@ export default function PreventiviPage() {
             </TextField>
           </Box>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ p: { xs: 1.5, md: 2 } }}>
           <Button onClick={() => setOpenQ(false)}>Annulla</Button>
           <Button variant="contained" onClick={createQuote} disabled={!qCust}>
             Crea
@@ -468,8 +468,8 @@ export default function PreventiviPage() {
       </Dialog>
 
       <Dialog open={openV} onClose={() => setOpenV(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Nuova versione</DialogTitle>
-        <DialogContent>
+        <DialogTitle sx={{ fontSize: { xs: '1.1rem', md: '1.25rem' } }}>Nuova versione</DialogTitle>
+        <DialogContent sx={{ p: { xs: 2, md: 3 } }}>
           <Typography variant="subtitle2" sx={{ mt: 1 }}>
             Stampante
           </Typography>
@@ -493,6 +493,7 @@ export default function PreventiviPage() {
                     }))
                   }}
                   fullWidth
+                  size="small"
                   helperText={params.printer_id ? `Costo macchina: €${params.costo_macchina_eur_h.toFixed(4)}/h | Potenza: ${params.potenza_w}W` : 'Seleziona una stampante per calcolare automaticamente i costi'}
                 >
                   <MenuItem value="">(Nessuna - valori manuali)</MenuItem>
@@ -515,6 +516,7 @@ export default function PreventiviPage() {
                       key={k} 
                       label={k} 
                       type="number" 
+                      size="small"
                       value={v} 
                       onChange={(e) => setParams((s: any) => ({ ...s, [k]: Number(e.target.value) }))} 
                       disabled={params.printer_id && (k === 'costo_macchina_eur_h' || k === 'potenza_w')}
@@ -539,6 +541,7 @@ export default function PreventiviPage() {
               <TextField
                 label="IVA %"
                 type="number"
+                size="small"
                 value={params.iva_pct}
                 onChange={(e) => setParams((s: any) => ({ ...s, iva_pct: Number(e.target.value) }))}
                 sx={{ width: 120 }}
@@ -551,6 +554,7 @@ export default function PreventiviPage() {
             <TextField
               label="Prezzo unitario vendita (€/pz)"
               type="number"
+              size="small"
               value={params?.prezzo_unitario_vendita || ''}
               onChange={(e) => setParams((s: any) => ({ ...s, prezzo_unitario_vendita: e.target.value ? Number(e.target.value) : null }))}
               helperText="Se impostato, sostituisce il prezzo calcolato con margine"
@@ -576,6 +580,7 @@ export default function PreventiviPage() {
               <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(4, 1fr)' } }}>
                 <TextField 
                   label="Descrizione" 
+                  size="small"
                   value={line.descrizione} 
                   onChange={(e) => updateLine(idx, 'descrizione', e.target.value)} 
                   sx={{ gridColumn: { md: '1 / span 2' } }} 
@@ -583,6 +588,7 @@ export default function PreventiviPage() {
                 <TextField 
                   select 
                   label="Filamento" 
+                  size="small"
                   value={line.filament_id} 
                   onChange={(e) => updateLine(idx, 'filament_id', e.target.value)}
                 >
@@ -785,7 +791,7 @@ export default function PreventiviPage() {
             </>
           )}
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ p: { xs: 1.5, md: 2 } }}>
           <Button onClick={() => setOpenV(false)}>Annulla</Button>
           <Button variant="contained" onClick={createVersion} disabled={loadingParams || !params}>
             Crea versione
@@ -795,7 +801,7 @@ export default function PreventiviPage() {
 
       {/* Dialog dettaglio versione */}
       <Dialog open={Boolean(detailVersion)} onClose={() => setDetailVersion(null)} maxWidth="md" fullWidth>
-        <DialogTitle>
+        <DialogTitle sx={{ fontSize: { xs: '1.1rem', md: '1.25rem' } }}>
           Dettaglio versione {detailVersion?.version_number}
           {detailVersion && (
             <Chip 
@@ -806,7 +812,7 @@ export default function PreventiviPage() {
             />
           )}
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ p: { xs: 2, md: 3 } }}>
           {detailVersion && (
             <Box sx={{ display: 'grid', gap: 3 }}>
               {/* Riepilogo generale */}
@@ -929,7 +935,7 @@ export default function PreventiviPage() {
             </Box>
           )}
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ p: { xs: 1.5, md: 2 } }}>
           <Button onClick={() => setDetailVersion(null)}>Chiudi</Button>
           {detailVersion && (
             <>

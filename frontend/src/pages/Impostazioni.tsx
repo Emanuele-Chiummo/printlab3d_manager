@@ -37,8 +37,8 @@ export default function ImpostazioniPage() {
   if (loading || !settings) return <Typography sx={{ mt: 4, textAlign: 'center' }}>Caricamento...</Typography>
 
   return (
-    <Paper sx={{ p: 3, maxWidth: 800, mx: 'auto', mt: 4 }}>
-      <Typography variant="h5" sx={{ mb: 3 }}>Impostazioni</Typography>
+    <Paper sx={{ p: { xs: 1.5, sm: 2, md: 3 }, maxWidth: 800, mx: 'auto', mt: 4 }}>
+      <Typography variant="h5" sx={{ mb: 3, fontSize: { xs: '1.25rem', md: '1.5rem' } }}>Impostazioni</Typography>
       
       <Tabs value={tabIndex} onChange={(_, v) => setTabIndex(v)} sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}>
         <Tab label="Parametri Preventivo" />
@@ -51,7 +51,7 @@ export default function ImpostazioniPage() {
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid item xs={12} sm={6}>
               <TextField 
-                fullWidth
+                size="small"
                 label="Costo kWh (€)" 
                 type="number" 
                 value={settings.costo_kwh_eur} 
@@ -60,7 +60,7 @@ export default function ImpostazioniPage() {
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField 
-                fullWidth
+                size="small"
                 label="Costo Manodopera (€/h)" 
                 type="number" 
                 value={settings.costo_manodopera_eur_h} 
@@ -69,7 +69,7 @@ export default function ImpostazioniPage() {
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField 
-                fullWidth
+                size="small"
                 label="Consumabili (€ / stampa)" 
                 type="number" 
                 value={settings.consumabili_eur_stampa} 
@@ -78,7 +78,7 @@ export default function ImpostazioniPage() {
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField 
-                fullWidth
+                size="small"
                 label="Soglia filamento basso (g)" 
                 type="number" 
                 value={settings.soglia_filamento_basso_g} 
@@ -93,7 +93,7 @@ export default function ImpostazioniPage() {
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               <TextField 
-                fullWidth
+                size="small"
                 label="Margine (%)" 
                 type="number" 
                 value={settings.margine_pct} 
@@ -102,7 +102,7 @@ export default function ImpostazioniPage() {
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField 
-                fullWidth
+                size="small"
                 label="Overhead (%)" 
                 type="number" 
                 value={settings.overhead_pct} 
@@ -111,7 +111,7 @@ export default function ImpostazioniPage() {
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField 
-                fullWidth
+                size="small"
                 label="Fattore Rischio (%)" 
                 type="number" 
                 value={settings.fattore_rischio_pct} 
@@ -130,7 +130,7 @@ export default function ImpostazioniPage() {
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <TextField 
-                fullWidth
+                size="small"
                 label="Nome Azienda" 
                 value={settings.company_name} 
                 onChange={e => handleChange('company_name', e.target.value)} 
@@ -138,7 +138,7 @@ export default function ImpostazioniPage() {
             </Grid>
             <Grid item xs={12}>
               <TextField 
-                fullWidth
+                size="small"
                 label="Indirizzo" 
                 value={settings.company_address} 
                 onChange={e => handleChange('company_address', e.target.value)} 
@@ -146,7 +146,7 @@ export default function ImpostazioniPage() {
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField 
-                fullWidth
+                size="small"
                 label="Email" 
                 type="email" 
                 value={settings.company_email} 
@@ -155,7 +155,7 @@ export default function ImpostazioniPage() {
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField 
-                fullWidth
+                size="small"
                 label="Telefono" 
                 value={settings.company_phone} 
                 onChange={e => handleChange('company_phone', e.target.value)} 

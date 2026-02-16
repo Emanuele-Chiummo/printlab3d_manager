@@ -235,11 +235,11 @@ export default function FilamentiPage() {
         sx={{
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
-          alignItems: { xs: 'flex-start', sm: 'center' },
+          alignItems: { xs: 'stretch', sm: 'center' },
           justifyContent: 'space-between',
           mt: { xs: 2, md: 3 },
           mb: { xs: 2, md: 3 },
-          gap: { xs: 1.5, sm: 2 },
+          gap: { xs: 2, sm: 2 },
         }}
       >
         <Box>
@@ -251,7 +251,7 @@ export default function FilamentiPage() {
           </Typography>
         </Box>
         {canWrite && (
-          <Button variant="contained" onClick={onNew} fullWidth={false} sx={{ minWidth: { xs: '100%', sm: 'auto' } }}>
+          <Button variant="contained" onClick={onNew} sx={{ width: { xs: '100%', sm: 'auto' }, fontWeight: 600 }}>
             Nuovo filamento
           </Button>
         )}
@@ -293,25 +293,25 @@ export default function FilamentiPage() {
             </Select>
           </FormControl>
           {(searchText || filterStato || filterUbicazione) && (
-            <Button size="small" onClick={() => { setSearchText(''); setFilterStato(''); setFilterUbicazione('') }} sx={{ minWidth: { xs: '100%', sm: 'auto' } }}>
+            <Button size="small" onClick={() => { setSearchText(''); setFilterStato(''); setFilterUbicazione('') }} sx={{ width: { xs: '100%', sm: 'auto' } }}>
               Reset filtri
             </Button>
           )}
         </Stack>
       </Stack>
 
-      <Paper sx={{ p: 2.5 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+      <Paper sx={{ p: { xs: 1.5, sm: 2, md: 2.5 } }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2, gap: 1 }}>
           <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: '0.95rem', md: '1rem' } }}>
               Inventario filamenti
             </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.75rem', md: '0.8rem' } }}>
               {filteredRows.length} filamenti visualizzati
             </Typography>
           </Box>
         </Stack>
-        <TableContainer sx={{ maxHeight: 520, overflowX: 'auto' }}>
+        <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: 'auto', overflowY: 'auto' }}>
           <Table size="small" stickyHeader>
             <TableHead>
               <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
@@ -471,8 +471,8 @@ export default function FilamentiPage() {
       </Paper>
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editing ? 'Modifica filamento' : 'Nuovo filamento'}</DialogTitle>
-        <DialogContent>
+        <DialogTitle sx={{ fontSize: { xs: '1.1rem', md: '1.25rem' } }}>{editing ? 'Modifica filamento' : 'Nuovo filamento'}</DialogTitle>
+        <DialogContent sx={{ p: { xs: 2, md: 3 } }}>
           <Box sx={{ display: 'grid', gap: 2, mt: 1, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
             <TextField label="Materiale" value={form.materiale || ''} onChange={(e) => setForm((s) => ({ ...s, materiale: e.target.value }))} />
             <TextField label="Tipo" value={form.tipo || ''} onChange={(e) => setForm((s) => ({ ...s, tipo: e.target.value }))} placeholder="es. Basic, Plus, Matter" />

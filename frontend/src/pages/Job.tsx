@@ -100,11 +100,11 @@ export default function JobPage() {
         sx={{
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
-          alignItems: { xs: 'flex-start', sm: 'center' },
+          alignItems: { xs: 'stretch', sm: 'center' },
           justifyContent: 'space-between',
           mt: { xs: 2, md: 3 },
           mb: { xs: 2, md: 3 },
-          gap: { xs: 1.5, sm: 2 },
+          gap: { xs: 2, sm: 2 },
         }}
       >
         <Box>
@@ -117,18 +117,18 @@ export default function JobPage() {
         </Box>
       </Box>
 
-      <Paper sx={{ p: { xs: 1.5, md: 2.5 } }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+      <Paper sx={{ p: { xs: 1.5, sm: 2, md: 2.5 } }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2, gap: 1 }}>
           <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: '0.95rem', md: '1rem' } }}>
               Elenco job
             </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.75rem', md: '0.8rem' } }}>
               {rows.length} lavori registrati
             </Typography>
           </Box>
         </Stack>
-        <TableContainer sx={{ maxHeight: 520, overflowX: 'auto' }}>
+        <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: 'auto', overflowY: 'auto' }}>
           <Table size="small" stickyHeader>
             <TableHead>
               <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
@@ -195,24 +195,59 @@ export default function JobPage() {
       </Paper>
 
       <Dialog open={openEdit} onClose={() => setOpenEdit(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Modifica Job (valori per pezzo)</DialogTitle>
-        <DialogContent>
+        <DialogTitle sx={{ fontSize: { xs: '1.1rem', md: '1.25rem' } }}>Modifica Job (valori per pezzo)</DialogTitle>
+        <DialogContent sx={{ p: { xs: 2, md: 3 } }}>
           <Box sx={{ display: 'grid', gap: 2, mt: 1, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
-            <TextField select label="Stato" value={form.status || 'PIANIFICATO'} onChange={(e) => setForm((s: any) => ({ ...s, status: e.target.value }))}>
+            <TextField
+              select
+              label="Stato"
+              value={form.status || 'PIANIFICATO'}
+              onChange={(e) => setForm((s: any) => ({ ...s, status: e.target.value }))}
+              size="small"
+            >
               {statusOptions.map((s) => (
                 <MenuItem key={s} value={s}>
                   {s}
                 </MenuItem>
               ))}
             </TextField>
-            <TextField label="Quantità prodotta" type="number" value={form.quantita_prodotta ?? 1} onChange={(e) => setForm((s: any) => ({ ...s, quantita_prodotta: Number(e.target.value) }))} helperText="Numero di pezzi prodotti" />
-            <TextField label="Tempo per pezzo (min)" type="number" value={form.tempo_reale_min ?? 0} onChange={(e) => setForm((s: any) => ({ ...s, tempo_reale_min: Number(e.target.value) }))} helperText="Minuti per singolo pezzo" />
-            <TextField label="Energia per pezzo (kWh)" type="number" inputProps={{ step: 0.001 }} value={form.energia_kwh ?? 0} onChange={(e) => setForm((s: any) => ({ ...s, energia_kwh: Number(e.target.value) }))} helperText="kWh per singolo pezzo" />
-            <TextField label="Scarti (g)" type="number" value={form.scarti_g ?? 0} onChange={(e) => setForm((s: any) => ({ ...s, scarti_g: Number(e.target.value) }))} />
-            <TextField label="Note" value={form.note || ''} onChange={(e) => setForm((s: any) => ({ ...s, note: e.target.value }))} sx={{ gridColumn: { md: '1 / -1' } }} multiline minRows={2} />
+            <TextField
+              label="Quantità prodotta"
+              type="number"
+              value={form.quantita_prodotta ?? 1}
+              onChange={(e) => setForm((s: any) => ({ ...s, quantita_prodotta: Number(e.target.value) }))}
+              helperText="Numero di pezzi"
+              size="small"
+            />
+            <TextField
+              label="Tempo per pezzo (min)"
+              type="number"
+              value={form.tempo_reale_min ?? 0}
+              onChange={(e) => setForm((s: any) => ({ ...s, tempo_reale_min: Number(e.target.value) }))}
+              helperText="Minuti per pezzo"
+              size="small"
+            />
+            <TextField
+              label="Energia per pezzo (kWh)"
+              type="number"
+              inputProps={{ step: 0.001 }}
+              value={form.energia_kwh ?? 0}
+              onChange={(e) => setForm((s: any) => ({ ...s, energia_kwh: Number(e.target.value) }))}
+              size="small"
+            />
+            <TextField label="Scarti (g)" type="number" value={form.scarti_g ?? 0} onChange={(e) => setForm((s: any) => ({ ...s, scarti_g: Number(e.target.value) }))} size="small" />
+            <TextField
+              label="Note"
+              value={form.note || ''}
+              onChange={(e) => setForm((s: any) => ({ ...s, note: e.target.value }))}
+              sx={{ gridColumn: { md: '1 / -1' } }}
+              multiline
+              minRows={2}
+              size="small"
+            />
           </Box>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ p: { xs: 1.5, md: 2 } }}>
           <Button onClick={() => setOpenEdit(false)}>Annulla</Button>
           <Button variant="contained" onClick={onSave}>
             Salva
@@ -221,22 +256,28 @@ export default function JobPage() {
       </Dialog>
 
       <Dialog open={openCons} onClose={() => setOpenCons(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Aggiungi consumo</DialogTitle>
-        <DialogContent>
+        <DialogTitle sx={{ fontSize: { xs: '1.1rem', md: '1.25rem' } }}>Aggiungi consumo</DialogTitle>
+        <DialogContent sx={{ p: { xs: 2, md: 3 } }}>
           <Box sx={{ display: 'grid', gap: 2, mt: 1 }}>
-            <TextField select label="Filamento" value={consFil} onChange={(e) => setConsFil(e.target.value as any)}>
+            <TextField
+              select
+              label="Filamento"
+              value={consFil}
+              onChange={(e) => setConsFil(e.target.value as any)}
+              size="small"
+            >
               {filaments
                 .filter((f) => f.stato !== 'FINITO' || (consFil && f.id === Number(consFil)))
                 .map((f) => (
-                <MenuItem key={f.id} value={f.id}>
-                  {f.materiale} {f.marca} {f.colore}
-                </MenuItem>
-              ))}
+                  <MenuItem key={f.id} value={f.id}>
+                    {f.materiale} {f.marca} {f.colore}
+                  </MenuItem>
+                ))}
             </TextField>
-            <TextField label="Peso (g)" type="number" value={consG} onChange={(e) => setConsG(Number(e.target.value))} />
+            <TextField label="Peso (g)" type="number" value={consG} onChange={(e) => setConsG(Number(e.target.value))} size="small" />
           </Box>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ p: { xs: 1.5, md: 2 } }}>
           <Button onClick={() => setOpenCons(false)}>Annulla</Button>
           <Button variant="contained" onClick={addCons} disabled={!consFil}>
             Aggiungi
