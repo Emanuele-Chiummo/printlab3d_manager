@@ -42,15 +42,44 @@ export default function UtentiPage() {
   }
 
   return (
-    <Box sx={{ mt: 3 }}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-        <Typography variant="h5">Gestione Utenti</Typography>
-        <Button variant="contained" onClick={onNew}>Nuovo Utente</Button>
-      </Stack>
-      
-      <Paper sx={{ borderRadius: 2, overflow: 'hidden', boxShadow: 1 }}>
-        <TableContainer>
-          <Table size="small">
+    <>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          alignItems: { md: 'center' },
+          justifyContent: 'space-between',
+          mt: 3,
+          mb: 3,
+          gap: 2,
+        }}
+      >
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            Utenti
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Gestisci accessi, ruoli e permessi del sistema.
+          </Typography>
+        </Box>
+        <Button variant="contained" onClick={onNew}>
+          Nuovo utente
+        </Button>
+      </Box>
+
+      <Paper sx={{ p: 2.5 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Elenco utenti
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              {rows.length} utenti registrati
+            </Typography>
+          </Box>
+        </Stack>
+        <TableContainer sx={{ maxHeight: 520 }}>
+          <Table size="small" stickyHeader>
             <TableHead>
               <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
                 <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
@@ -95,6 +124,6 @@ export default function UtentiPage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </>
   )
 }

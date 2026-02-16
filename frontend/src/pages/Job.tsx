@@ -7,7 +7,9 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  IconButton,
   MenuItem,
+  Menu,
   Paper,
   Stack,
   Table,
@@ -19,6 +21,10 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
+import EditIcon from '@mui/icons-material/Edit'
+import DeleteIcon from '@mui/icons-material/Delete'
+import AddCircleIcon from '@mui/icons-material/AddCircle'
+import MoreVertIcon from '@mui/icons-material/MoreVert'
 import api from '../api/client'
 import { Filament, Job } from '../api/types'
 import { useAuth } from '../components/AuthProvider'
@@ -30,6 +36,7 @@ export default function JobPage() {
   const canWrite = user?.role === 'ADMIN' || user?.role === 'OPERATORE'
   const [rows, setRows] = React.useState<Job[]>([])
   const [filaments, setFilaments] = React.useState<Filament[]>([])
+  const [anchorEl, setAnchorEl] = React.useState<{ [key: number]: HTMLElement | null }>({})
 
   const load = () => api.get('/api/v1/jobs/').then((r) => setRows(r.data))
   const loadFil = () => api.get('/api/v1/filaments/').then((r) => setFilaments(r.data))
@@ -88,13 +95,40 @@ export default function JobPage() {
 
   return (
     <>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 3, mb: 2 }}>
-        <Typography variant="h5">Job</Typography>
-      </Stack>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          alignItems: { md: 'center' },
+          justifyContent: 'space-between',
+          mt: 3,
+          mb: 3,
+          gap: 2,
+        }}
+      >
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            Job
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Monitora lavori, consumi e margini operativi.
+          </Typography>
+        </Box>
+      </Box>
 
-      <Paper sx={{ borderRadius: 2, overflow: 'hidden', boxShadow: 1 }}>
-        <TableContainer>
-          <Table size="small">
+      <Paper sx={{ p: 2.5 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Elenco job
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              {rows.length} lavori registrati
+            </Typography>
+          </Box>
+        </Stack>
+        <TableContainer sx={{ maxHeight: 520 }}>
+          <Table size="small" stickyHeader>
             <TableHead>
               <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
                 <TableCell sx={{ fontWeight: 600 }}>ID</TableCell>
@@ -122,23 +156,33 @@ export default function JobPage() {
               <TableCell align="right">
                 {canWrite && (
                   <>
-                    <Button size="small" onClick={() => onEdit(r)}>
-                      Modifica
-                    </Button>
-                    <Button
+                    <IconButton
                       size="small"
-                      onClick={() => {
-                        setConsJob(r)
-                        setConsFil('')
-                        setConsG(0)
-                        setOpenCons(true)
-                      }}
+                      onClick={(e) => setAnchorEl({ ...anchorEl, [r.id]: e.currentTarget })}
                     >
-                      Consumo
-                    </Button>
-                    <Button size="small" color="error" onClick={() => deleteJob(r.id)}>
-                      Elimina
-                    </Button>
+                      <MoreVertIcon fontSize="small" />
+                    </IconButton>
+                    <Menu
+                      anchorEl={anchorEl[r.id]}
+                      open={Boolean(anchorEl[r.id])}
+                      onClose={() => setAnchorEl({ ...anchorEl, [r.id]: null })}
+                    >
+                      <MenuItem onClick={() => { onEdit(r); setAnchorEl({ ...anchorEl, [r.id]: null }) }}>
+                        <EditIcon fontSize="small" sx={{ mr: 1 }} /> Modifica
+                      </MenuItem>
+                      <MenuItem onClick={() => {
+                        setConsJob(r);
+                        setConsFil('');
+                        setConsG(0);
+                        setOpenCons(true);
+                        setAnchorEl({ ...anchorEl, [r.id]: null });
+                      }}>
+                        <AddCircleIcon fontSize="small" sx={{ mr: 1 }} /> Aggiungi consumo
+                      </MenuItem>
+                      <MenuItem onClick={() => { deleteJob(r.id); setAnchorEl({ ...anchorEl, [r.id]: null }) }}>
+                        <DeleteIcon fontSize="small" sx={{ mr: 1 }} color="error" /> Elimina
+                      </MenuItem>
+                    </Menu>
                   </>
                 )}
               </TableCell>

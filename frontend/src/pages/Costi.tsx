@@ -6,8 +6,11 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  IconButton,
   Tab,
   Tabs,
+  Menu,
+  MenuItem,
   TextField,
   Typography,
   Table,
@@ -22,6 +25,8 @@ import {
   Paper,
   Chip,
 } from '@mui/material'
+import DeleteIcon from '@mui/icons-material/Delete'
+import MoreVertIcon from '@mui/icons-material/MoreVert'
 import api from '../api/client'
 import { useAuth } from '../components/AuthProvider'
 import { CostCategory, CostEntry, CostMonthly, CostByJob, CostByCustomer, Job, Customer } from '../api/types'
@@ -38,6 +43,7 @@ export default function CostiPage() {
   const canWriteEntries = user?.role === 'ADMIN' || user?.role === 'OPERATORE'
 
   const [tab, setTab] = React.useState(0)
+  const [anchorEl, setAnchorEl] = React.useState<{ [key: number]: HTMLElement | null }>({})
 
   const [categories, setCategories] = React.useState<CostCategory[]>([])
   const [entries, setEntries] = React.useState<CostEntry[]>([])
@@ -143,9 +149,26 @@ export default function CostiPage() {
 
   return (
     <>
-      <Typography variant="h5" sx={{ mt: 3, mb: 2 }}>
-        Costi
-      </Typography>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          alignItems: { md: 'center' },
+          justifyContent: 'space-between',
+          mt: 3,
+          mb: 3,
+          gap: 2,
+        }}
+      >
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            Costi
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Monitora registrazioni, categorie e analisi per periodo, job e cliente.
+          </Typography>
+        </Box>
+      </Box>
 
       <Paper sx={{ p: 2, mb: 2 }}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }}>
@@ -198,21 +221,27 @@ export default function CostiPage() {
 
       {tab === 0 && (
         <>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-            <Typography variant="h6">Registrazioni costi</Typography>
-            {canWriteEntries && (
-              <Button variant="contained" onClick={() => {
-                setNewEntry((s) => ({ ...s, categoria_id: categories[0]?.id ?? 0 }))
-                setEntryDialog(true)
-              }}>
-                Nuovo costo
-              </Button>
-            )}
-          </Stack>
-
-          <Paper sx={{ borderRadius: 2, overflow: 'hidden', boxShadow: 1, mb: 2 }}>
-            <TableContainer>
-              <Table size="small">
+          <Paper sx={{ p: 2.5, mb: 2 }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  Registrazioni costi
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  {filtered.length} registrazioni visualizzate
+                </Typography>
+              </Box>
+              {canWriteEntries && (
+                <Button variant="outlined" onClick={() => {
+                  setNewEntry((s) => ({ ...s, categoria_id: categories[0]?.id ?? 0 }))
+                  setEntryDialog(true)
+                }}>
+                  Nuovo costo
+                </Button>
+              )}
+            </Stack>
+            <TableContainer sx={{ maxHeight: 520 }}>
+              <Table size="small" stickyHeader>
                 <TableHead>
                   <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
                     <TableCell sx={{ fontWeight: 600 }}>Periodo</TableCell>
@@ -233,9 +262,21 @@ export default function CostiPage() {
                   <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{e.note || ''}</TableCell>
                   {canWriteEntries && (
                     <TableCell align="right">
-                      <Button color="error" size="small" onClick={() => deleteEntry(e.id)}>
-                        Elimina
-                      </Button>
+                      <IconButton
+                        size="small"
+                        onClick={(ev) => setAnchorEl({ ...anchorEl, [e.id]: ev.currentTarget })}
+                      >
+                        <MoreVertIcon fontSize="small" />
+                      </IconButton>
+                      <Menu
+                        anchorEl={anchorEl[e.id]}
+                        open={Boolean(anchorEl[e.id])}
+                        onClose={() => setAnchorEl({ ...anchorEl, [e.id]: null })}
+                      >
+                        <MenuItem onClick={() => { deleteEntry(e.id); setAnchorEl({ ...anchorEl, [e.id]: null }) }}>
+                          <DeleteIcon fontSize="small" sx={{ mr: 1 }} color="error" /> Elimina
+                        </MenuItem>
+                      </Menu>
                     </TableCell>
                   )}
                 </TableRow>
@@ -318,18 +359,24 @@ export default function CostiPage() {
 
       {tab === 1 && (
         <>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-            <Typography variant="h6">Categorie costo</Typography>
-            {canWriteCategories && (
-              <Button variant="contained" onClick={() => setCatDialog(true)}>
-                Nuova categoria
-              </Button>
-            )}
-          </Stack>
-
-          <Paper sx={{ borderRadius: 2, overflow: 'hidden', boxShadow: 1 }}>
-            <TableContainer>
-              <Table size="small">
+          <Paper sx={{ p: 2.5 }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  Categorie costo
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  {categories.length} categorie disponibili
+                </Typography>
+              </Box>
+              {canWriteCategories && (
+                <Button variant="outlined" onClick={() => setCatDialog(true)}>
+                  Nuova categoria
+                </Button>
+              )}
+            </Stack>
+            <TableContainer sx={{ maxHeight: 520 }}>
+              <Table size="small" stickyHeader>
                 <TableHead>
                   <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
                     <TableCell sx={{ fontWeight: 600 }}>Nome</TableCell>

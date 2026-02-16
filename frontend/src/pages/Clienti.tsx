@@ -9,6 +9,8 @@ import {
   IconButton,
   Paper,
   Stack,
+  Menu,
+  MenuItem,
   Table,
   TableBody,
   TableCell,
@@ -20,6 +22,7 @@ import {
 } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+import MoreVertIcon from '@mui/icons-material/MoreVert'
 import api from '../api/client'
 import { Customer } from '../api/types'
 import { useAuth } from '../components/AuthProvider'
@@ -43,6 +46,7 @@ export default function ClientiPage() {
   const [open, setOpen] = React.useState(false)
   const [editing, setEditing] = React.useState<Customer | null>(null)
   const [form, setForm] = React.useState<Partial<Customer>>(empty)
+  const [anchorEl, setAnchorEl] = React.useState<{ [key: number]: HTMLElement | null }>({})
 
   const load = () => api.get('/api/v1/customers/').then((r) => setRows(r.data))
   React.useEffect(() => {
@@ -76,18 +80,45 @@ export default function ClientiPage() {
 
   return (
     <>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 3, mb: 2 }}>
-        <Typography variant="h5">Clienti</Typography>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          alignItems: { md: 'center' },
+          justifyContent: 'space-between',
+          mt: 3,
+          mb: 3,
+          gap: 2,
+        }}
+      >
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            Clienti
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Gestisci clienti privati e aziende con dettagli completi.
+          </Typography>
+        </Box>
         {canWrite && (
           <Button variant="contained" onClick={onNew}>
-            Nuovo
+            Nuovo cliente
           </Button>
         )}
-      </Stack>
+      </Box>
 
-      <Paper sx={{ borderRadius: 2, overflow: 'hidden', boxShadow: 1 }}>
-        <TableContainer>
-          <Table size="small">
+      <Paper sx={{ p: 2.5 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Elenco clienti
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              {rows.length} clienti registrati
+            </Typography>
+          </Box>
+        </Stack>
+        <TableContainer sx={{ maxHeight: 520 }}>
+          <Table size="small" stickyHeader>
             <TableHead>
               <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
                 <TableCell sx={{ fontWeight: 600 }}>Tipo</TableCell>
@@ -109,16 +140,28 @@ export default function ClientiPage() {
               <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{r.telefono}</TableCell>
               <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' } }}>{r.indirizzo}</TableCell>
               <TableCell align="right">
-                {canWrite && (
-                  <IconButton onClick={() => onEdit(r)} size="small">
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                )}
-                {canDelete && (
-                  <IconButton onClick={() => onDelete(r)} size="small">
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                )}
+                <IconButton
+                  size="small"
+                  onClick={(e) => setAnchorEl({ ...anchorEl, [r.id]: e.currentTarget })}
+                >
+                  <MoreVertIcon fontSize="small" />
+                </IconButton>
+                <Menu
+                  anchorEl={anchorEl[r.id]}
+                  open={Boolean(anchorEl[r.id])}
+                  onClose={() => setAnchorEl({ ...anchorEl, [r.id]: null })}
+                >
+                  {canWrite && (
+                    <MenuItem onClick={() => { onEdit(r); setAnchorEl({ ...anchorEl, [r.id]: null }) }}>
+                      <EditIcon fontSize="small" sx={{ mr: 1 }} /> Modifica
+                    </MenuItem>
+                  )}
+                  {canDelete && (
+                    <MenuItem onClick={() => { onDelete(r); setAnchorEl({ ...anchorEl, [r.id]: null }) }}>
+                      <DeleteIcon fontSize="small" sx={{ mr: 1 }} color="error" /> Elimina
+                    </MenuItem>
+                  )}
+                </Menu>
               </TableCell>
             </TableRow>
           ))}

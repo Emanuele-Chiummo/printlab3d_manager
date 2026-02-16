@@ -185,40 +185,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           )
         })}
       </List>
-      <Box sx={{ p: 3 }}>
-        <Box
-          sx={{
-            background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(219,234,254,0.85))',
-            borderRadius: '16px',
-            px: 3,
-            py: 2,
-            border: '1px solid rgba(148,163,184,0.2)',
-            boxShadow: '0 30px 65px -50px rgba(15,23,42,0.65)',
-            backdropFilter: 'blur(8px)',
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
-            <Avatar sx={{ width: 44, height: 44, bgcolor: '#dbeafe', color: '#1d4ed8', fontWeight: 700 }}>
-              {(user?.full_name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
-            </Avatar>
-            <Box sx={{ minWidth: 0 }}>
-              <Typography
-                variant="body2"
-                sx={{ fontWeight: 600, color: '#0f172a', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}
-              >
-                {user?.full_name || user?.email}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#64748b' }}>
-                {user?.role === 'ADMIN' ? 'Amministratore' : user?.role}
-              </Typography>
-            </Box>
-          </Box>
-          <Divider sx={{ borderColor: 'rgba(15,23,42,0.05)', mb: 1.5 }} />
-          <Typography variant="caption" sx={{ color: '#94a3b8' }}>
-            Ultimo accesso sincronizzato automaticamente.
-          </Typography>
-        </Box>
-      </Box>
     </Box>
   )
 

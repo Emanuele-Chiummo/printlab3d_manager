@@ -8,6 +8,8 @@ import {
   DialogTitle,
   IconButton,
   Stack,
+  Menu,
+  MenuItem,
   Table,
   TableBody,
   TableCell,
@@ -26,6 +28,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import MoreVertIcon from '@mui/icons-material/MoreVert'
 import api from '../api/client'
 import { Filament } from '../api/types'
 import { useAuth } from '../components/AuthProvider'
@@ -64,6 +67,7 @@ export default function FilamentiPage() {
   const [searchText, setSearchText] = React.useState('')
   const [filterStato, setFilterStato] = React.useState('')
   const [filterUbicazione, setFilterUbicazione] = React.useState('')
+  const [anchorEl, setAnchorEl] = React.useState<{ [key: number]: HTMLElement | null }>({})
 
   const load = () => api.get('/api/v1/filaments/').then((r) => setRows(r.data))
   const loadLocations = () => api.get('/api/v1/locations/').then((r) => setLocations(r.data))
@@ -127,14 +131,31 @@ export default function FilamentiPage() {
 
   return (
     <>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 3, mb: 2 }}>
-        <Typography variant="h5">Filamenti</Typography>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          alignItems: { md: 'center' },
+          justifyContent: 'space-between',
+          mt: 3,
+          mb: 3,
+          gap: 2,
+        }}
+      >
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            Filamenti
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Gestisci materiali, scorte e ubicazioni con filtri avanzati.
+          </Typography>
+        </Box>
         {canWrite && (
           <Button variant="contained" onClick={onNew}>
-            Nuovo
+            Nuovo filamento
           </Button>
         )}
-      </Stack>
+      </Box>
 
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 2 }}>
         <TextField 
@@ -177,9 +198,19 @@ export default function FilamentiPage() {
         )}
       </Stack>
 
-      <Paper sx={{ borderRadius: 2, overflow: 'hidden', boxShadow: 1 }}>
-        <TableContainer>
-          <Table size="small">
+      <Paper sx={{ p: 2.5 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Inventario filamenti
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              {filteredRows.length} filamenti visualizzati
+            </Typography>
+          </Box>
+        </Stack>
+        <TableContainer sx={{ maxHeight: 520 }}>
+          <Table size="small" stickyHeader>
             <TableHead>
               <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
                 <TableCell sx={{ fontWeight: 600 }}>Materiale</TableCell>
@@ -252,21 +283,33 @@ export default function FilamentiPage() {
                   {low && <Chip label="Stock basso" color="warning" size="small" sx={{ ml: 1 }} />}
                 </TableCell>
                 <TableCell align="right">
-                  {canWrite && (
-                    <IconButton onClick={() => onEdit(r)} size="small">
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                  )}
-                  {canWrite && (
-                    <IconButton onClick={() => onDuplicate(r)} size="small" title="Duplica">
-                      <ContentCopyIcon fontSize="small" />
-                    </IconButton>
-                  )}
-                  {canDelete && (
-                    <IconButton onClick={() => onDelete(r)} size="small">
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  )}
+                  <IconButton
+                    size="small"
+                    onClick={(e) => setAnchorEl({ ...anchorEl, [r.id]: e.currentTarget })}
+                  >
+                    <MoreVertIcon fontSize="small" />
+                  </IconButton>
+                  <Menu
+                    anchorEl={anchorEl[r.id]}
+                    open={Boolean(anchorEl[r.id])}
+                    onClose={() => setAnchorEl({ ...anchorEl, [r.id]: null })}
+                  >
+                    {canWrite && (
+                      <MenuItem onClick={() => { onEdit(r); setAnchorEl({ ...anchorEl, [r.id]: null }) }}>
+                        <EditIcon fontSize="small" sx={{ mr: 1 }} /> Modifica
+                      </MenuItem>
+                    )}
+                    {canWrite && (
+                      <MenuItem onClick={() => { onDuplicate(r); setAnchorEl({ ...anchorEl, [r.id]: null }) }}>
+                        <ContentCopyIcon fontSize="small" sx={{ mr: 1 }} /> Duplica
+                      </MenuItem>
+                    )}
+                    {canDelete && (
+                      <MenuItem onClick={() => { onDelete(r); setAnchorEl({ ...anchorEl, [r.id]: null }) }}>
+                        <DeleteIcon fontSize="small" sx={{ mr: 1 }} color="error" /> Elimina
+                      </MenuItem>
+                    )}
+                  </Menu>
                 </TableCell>
               </TableRow>
             )

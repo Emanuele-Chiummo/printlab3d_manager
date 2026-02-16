@@ -10,6 +10,8 @@ import {
   DialogTitle,
   Divider,
   FormControlLabel,
+  IconButton,
+  Menu,
   MenuItem,
   Paper,
   Stack,
@@ -22,6 +24,13 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
+import MoreVertIcon from '@mui/icons-material/MoreVert'
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'
+import DownloadIcon from '@mui/icons-material/Download'
+import SendIcon from '@mui/icons-material/Send'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import CancelIcon from '@mui/icons-material/Cancel'
+import WorkIcon from '@mui/icons-material/Work'
 import api from '../api/client'
 import { Customer, Filament, Quote, QuoteVersion } from '../api/types'
 // ...existing code...
@@ -34,6 +43,8 @@ export default function PreventiviPage() {
   const [versions, setVersions] = React.useState<QuoteVersion[]>([])
   const [customers, setCustomers] = React.useState<Customer[]>([])
   const [filaments, setFilaments] = React.useState<Filament[]>([])
+  const [anchorEl, setAnchorEl] = React.useState<{ [key: number]: HTMLElement | null }>({})
+  const [detailVersion, setDetailVersion] = React.useState<QuoteVersion | null>(null)
 
   const canWrite = user?.role === 'ADMIN' || user?.role === 'OPERATORE' || user?.role === 'COMMERCIALE'
   const canCreateJob = user?.role === 'ADMIN' || user?.role === 'OPERATORE'
@@ -328,14 +339,9 @@ export default function PreventiviPage() {
               </Typography>
             </Box>
             {canWrite && selected && (
-              <Stack direction="row" spacing={1}>
-                <Button variant="text" color="error" size="small" onClick={deleteQuote}>
-                  Elimina
-                </Button>
-                <Button variant="outlined" size="small" onClick={() => setOpenV(true)}>
-                  Nuova versione
-                </Button>
-              </Stack>
+              <Button variant="text" color="error" size="small" onClick={deleteQuote}>
+                Elimina
+              </Button>
             )}
           </Stack>
           {!selected ? (
@@ -343,8 +349,8 @@ export default function PreventiviPage() {
               <Typography variant="body2">Seleziona un preventivo per vedere i dettagli.</Typography>
             </Box>
           ) : (
-            <TableContainer>
-              <Table size="small">
+            <TableContainer sx={{ maxHeight: 520 }}>
+              <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
                   <TableCell sx={{ fontWeight: 600 }}>Versione</TableCell>
@@ -357,39 +363,54 @@ export default function PreventiviPage() {
                 <TableBody>
                   {versions.map((v) => (
                     <TableRow key={v.id} hover>
-                      <TableCell sx={{ fontWeight: 600 }}>v{v.version_number}</TableCell>
+                      <TableCell 
+                        sx={{ fontWeight: 600, color: 'primary.main', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+                        onClick={() => setDetailVersion(v)}
+                      >
+                        v{v.version_number}
+                      </TableCell>
                       <TableCell>
                         <Chip label={v.status} color={statusColor(v.status) as any} size="small" variant="filled" />
                       </TableCell>
                       <TableCell align="right">€ {v.totale_imponibile_eur.toFixed(2)}</TableCell>
                       <TableCell align="right">€ {v.totale_lordo_eur.toFixed(2)}</TableCell>
                       <TableCell align="right">
-                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                          <Button size="small" onClick={() => previewPdf(v.id)}>
-                            Anteprima
-                          </Button>
-                          <Button size="small" onClick={() => downloadPdf(v.id)}>
-                            Scarica
-                          </Button>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => setAnchorEl({ ...anchorEl, [v.id]: e.currentTarget })}
+                        >
+                          <MoreVertIcon fontSize="small" />
+                        </IconButton>
+                        <Menu
+                          anchorEl={anchorEl[v.id]}
+                          open={Boolean(anchorEl[v.id])}
+                          onClose={() => setAnchorEl({ ...anchorEl, [v.id]: null })}
+                        >
+                          <MenuItem onClick={() => { previewPdf(v.id); setAnchorEl({ ...anchorEl, [v.id]: null }) }}>
+                            <PictureAsPdfIcon fontSize="small" sx={{ mr: 1 }} /> Anteprima PDF
+                          </MenuItem>
+                          <MenuItem onClick={() => { downloadPdf(v.id); setAnchorEl({ ...anchorEl, [v.id]: null }) }}>
+                            <DownloadIcon fontSize="small" sx={{ mr: 1 }} /> Scarica PDF
+                          </MenuItem>
                           {canWrite && (
                             <>
-                              <Button size="small" onClick={() => setStatus(v.id, 'INVIATO')}>
-                                Invia
-                              </Button>
-                              <Button size="small" onClick={() => setStatus(v.id, 'ACCETTATO')}>
-                                Accetta
-                              </Button>
-                              <Button size="small" onClick={() => setStatus(v.id, 'RIFIUTATO')}>
-                                Rifiuta
-                              </Button>
+                              <MenuItem onClick={() => { setStatus(v.id, 'INVIATO'); setAnchorEl({ ...anchorEl, [v.id]: null }) }}>
+                                <SendIcon fontSize="small" sx={{ mr: 1 }} /> Segna come Inviato
+                              </MenuItem>
+                              <MenuItem onClick={() => { setStatus(v.id, 'ACCETTATO'); setAnchorEl({ ...anchorEl, [v.id]: null }) }}>
+                                <CheckCircleIcon fontSize="small" sx={{ mr: 1 }} color="success" /> Segna come Accettato
+                              </MenuItem>
+                              <MenuItem onClick={() => { setStatus(v.id, 'RIFIUTATO'); setAnchorEl({ ...anchorEl, [v.id]: null }) }}>
+                                <CancelIcon fontSize="small" sx={{ mr: 1 }} color="error" /> Segna come Rifiutato
+                              </MenuItem>
                             </>
                           )}
                           {canCreateJob && v.status === 'ACCETTATO' && (
-                            <Button size="small" variant="contained" color="success" onClick={() => createJob(v.id)}>
-                              Crea Job
-                            </Button>
+                            <MenuItem onClick={() => { createJob(v.id); setAnchorEl({ ...anchorEl, [v.id]: null }) }}>
+                              <WorkIcon fontSize="small" sx={{ mr: 1 }} color="success" /> Crea Job
+                            </MenuItem>
                           )}
-                        </Stack>
+                        </Menu>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -705,6 +726,157 @@ export default function PreventiviPage() {
           <Button variant="contained" onClick={createVersion} disabled={loadingParams || !params}>
             Crea versione
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog dettaglio versione */}
+      <Dialog open={Boolean(detailVersion)} onClose={() => setDetailVersion(null)} maxWidth="md" fullWidth>
+        <DialogTitle>
+          Dettaglio versione {detailVersion?.version_number}
+          {detailVersion && (
+            <Chip 
+              label={detailVersion.status} 
+              color={statusColor(detailVersion.status) as any} 
+              size="small" 
+              sx={{ ml: 2 }} 
+            />
+          )}
+        </DialogTitle>
+        <DialogContent>
+          {detailVersion && (
+            <Box sx={{ display: 'grid', gap: 3 }}>
+              {/* Riepilogo generale */}
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                  Riepilogo economico
+                </Typography>
+                <Box sx={{ display: 'grid', gap: 1, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="body2" color="text.secondary">Totale imponibile:</Typography>
+                    <Typography variant="body2" fontWeight="bold">€ {detailVersion.totale_imponibile_eur.toFixed(2)}</Typography>
+                  </Stack>
+                  {detailVersion.totale_iva_eur > 0 && (
+                    <Stack direction="row" justifyContent="space-between">
+                      <Typography variant="body2" color="text.secondary">IVA:</Typography>
+                      <Typography variant="body2">€ {detailVersion.totale_iva_eur.toFixed(2)}</Typography>
+                    </Stack>
+                  )}
+                  <Divider />
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="body1" fontWeight="bold" color="primary">Totale lordo:</Typography>
+                    <Typography variant="body1" fontWeight="bold" color="primary">€ {detailVersion.totale_lordo_eur.toFixed(2)}</Typography>
+                  </Stack>
+                </Box>
+              </Box>
+
+              {/* Parametri */}
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                  Parametri di calcolo
+                </Typography>
+                <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' } }}>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="caption" color="text.secondary">Costo macchina (€/h):</Typography>
+                    <Typography variant="caption">{detailVersion.costo_macchina_eur_h?.toFixed(2) || '-'}</Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="caption" color="text.secondary">Costo manodopera (€/h):</Typography>
+                    <Typography variant="caption">{detailVersion.costo_manodopera_eur_h?.toFixed(2) || '-'}</Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="caption" color="text.secondary">Potenza (W):</Typography>
+                    <Typography variant="caption">{detailVersion.potenza_w?.toFixed(0) || '-'}</Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="caption" color="text.secondary">Costo energia (€/kWh):</Typography>
+                    <Typography variant="caption">{detailVersion.costo_energia_kwh?.toFixed(4) || '-'}</Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="caption" color="text.secondary">Overhead (%):</Typography>
+                    <Typography variant="caption">{detailVersion.overhead_pct?.toFixed(1) || '-'}%</Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="caption" color="text.secondary">Rischio (%):</Typography>
+                    <Typography variant="caption">{detailVersion.rischio_pct?.toFixed(1) || '-'}%</Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="caption" color="text.secondary">Margine (%):</Typography>
+                    <Typography variant="caption">{detailVersion.margine_pct?.toFixed(1) || '-'}%</Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="caption" color="text.secondary">Sconto (€):</Typography>
+                    <Typography variant="caption">{detailVersion.sconto_eur?.toFixed(2) || '-'}</Typography>
+                  </Stack>
+                  {detailVersion.applica_iva && (
+                    <Stack direction="row" justifyContent="space-between">
+                      <Typography variant="caption" color="text.secondary">IVA (%):</Typography>
+                      <Typography variant="caption">{detailVersion.iva_pct?.toFixed(0) || '-'}%</Typography>
+                    </Stack>
+                  )}
+                </Box>
+              </Box>
+
+              {/* Righe preventivo */}
+              {detailVersion.righe && detailVersion.righe.length > 0 && (
+                <Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                    Righe preventivo
+                  </Typography>
+                  {detailVersion.righe.map((riga: any, idx: number) => (
+                    <Paper key={idx} sx={{ p: 2, mb: 1.5, bgcolor: 'grey.50' }}>
+                      <Stack spacing={1}>
+                        <Typography variant="body2" fontWeight="bold">{riga.descrizione}</Typography>
+                        <Box sx={{ display: 'grid', gap: 1, gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' } }}>
+                          <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="caption" color="text.secondary">Filamento:</Typography>
+                            <Typography variant="caption">
+                              {riga.filament_id ? filaments.find(f => f.id === riga.filament_id)?.marca + ' ' + filaments.find(f => f.id === riga.filament_id)?.colore || `ID ${riga.filament_id}` : 'Nessuno'}
+                            </Typography>
+                          </Stack>
+                          <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="caption" color="text.secondary">Quantità:</Typography>
+                            <Typography variant="caption">{riga.quantita} pz</Typography>
+                          </Stack>
+                          <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="caption" color="text.secondary">Peso materiale (g/pz):</Typography>
+                            <Typography variant="caption">{riga.peso_materiale_g}g</Typography>
+                          </Stack>
+                          <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="caption" color="text.secondary">Tempo stampa (min/pz):</Typography>
+                            <Typography variant="caption">{riga.tempo_stimato_min} min</Typography>
+                          </Stack>
+                          <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="caption" color="text.secondary">Manodopera (min tot):</Typography>
+                            <Typography variant="caption">{riga.ore_manodopera_min} min</Typography>
+                          </Stack>
+                        </Box>
+                      </Stack>
+                    </Paper>
+                  ))}
+                </Box>
+              )}
+
+              {/* Info versione */}
+              <Box sx={{ pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
+                <Typography variant="caption" color="text.secondary">
+                  Versione #{detailVersion.version_number} - ID: {detailVersion.id}
+                </Typography>
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDetailVersion(null)}>Chiudi</Button>
+          {detailVersion && (
+            <>
+              <Button onClick={() => { previewPdf(detailVersion.id); setDetailVersion(null) }}>
+                Anteprima PDF
+              </Button>
+              <Button variant="contained" onClick={() => { downloadPdf(detailVersion.id); setDetailVersion(null) }}>
+                Scarica PDF
+              </Button>
+            </>
+          )}
         </DialogActions>
       </Dialog>
     </>

@@ -8,6 +8,7 @@ import {
   DialogTitle,
   IconButton,
   MenuItem,
+  Menu,
   Paper,
   Stack,
   Table,
@@ -20,6 +21,8 @@ import {
   Typography,
 } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
+import DeleteIcon from '@mui/icons-material/Delete'
+import MoreVertIcon from '@mui/icons-material/MoreVert'
 import { loadLocations, createLocation, updateLocation, deleteLocation } from '../services/locations'
 import { Location } from '../api/types'
 import { useAuth } from '../components/AuthProvider'
@@ -32,6 +35,7 @@ export default function UbicazioniPage() {
   const [open, setOpen] = React.useState(false)
   const [editing, setEditing] = React.useState<Location | null>(null)
   const [form, setForm] = React.useState<Partial<Location>>(empty)
+  const [anchorEl, setAnchorEl] = React.useState<{ [key: number]: HTMLElement | null }>({})
 
   const load = async () => {
     const data = await loadLocations()
@@ -60,6 +64,17 @@ export default function UbicazioniPage() {
     else await createLocation(form)
     setOpen(false)
     await load()
+  }
+
+  const onDelete = async (l: Location) => {
+    if (!confirm(`Eliminare l'ubicazione "${l.nome}"?`)) return
+    try {
+      await deleteLocation(l.id)
+      await load()
+    } catch (err: any) {
+      const detail = err.response?.data?.detail || 'Errore durante l\'eliminazione'
+      alert(detail)
+    }
   }
 
   const tipoOptions = ['MAGAZZINO', 'SCAFFALE', 'RIPIANO', 'SLOT']
@@ -102,11 +117,6 @@ export default function UbicazioniPage() {
               {rows.length} elementi sincronizzati
             </Typography>
           </Box>
-          {canWrite && (
-            <Button size="small" variant="outlined" onClick={onNew}>
-              Aggiungi
-            </Button>
-          )}
         </Stack>
         {rows.length === 0 ? (
           <Box sx={{ py: 8, textAlign: 'center', color: 'text.secondary' }}>
@@ -131,9 +141,26 @@ export default function UbicazioniPage() {
                     <TableCell>{r.parent_id ?? '-'}</TableCell>
                     <TableCell align="right">
                       {canWrite && (
-                        <IconButton onClick={() => onEdit(r)} size="small" color="primary">
-                          <EditIcon fontSize="small" />
-                        </IconButton>
+                        <>
+                          <IconButton
+                            size="small"
+                            onClick={(e) => setAnchorEl({ ...anchorEl, [r.id]: e.currentTarget })}
+                          >
+                            <MoreVertIcon fontSize="small" />
+                          </IconButton>
+                          <Menu
+                            anchorEl={anchorEl[r.id]}
+                            open={Boolean(anchorEl[r.id])}
+                            onClose={() => setAnchorEl({ ...anchorEl, [r.id]: null })}
+                          >
+                            <MenuItem onClick={() => { onEdit(r); setAnchorEl({ ...anchorEl, [r.id]: null }) }}>
+                              <EditIcon fontSize="small" sx={{ mr: 1 }} /> Modifica
+                            </MenuItem>
+                            <MenuItem onClick={() => { onDelete(r); setAnchorEl({ ...anchorEl, [r.id]: null }) }}>
+                              <DeleteIcon fontSize="small" sx={{ mr: 1 }} color="error" /> Elimina
+                            </MenuItem>
+                          </Menu>
+                        </>
                       )}
                     </TableCell>
                   </TableRow>
