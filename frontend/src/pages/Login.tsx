@@ -11,8 +11,8 @@ import ResetPassword from './ResetPassword'
 export default function LoginPage() {
   const nav = useNavigate()
   const { setToken, refresh } = useAuth()
-  const [email, setEmail] = React.useState('admin@printlab.local')
-  const [password, setPassword] = React.useState('admin123')
+  const [email, setEmail] = React.useState('')
+  const [password, setPassword] = React.useState('')
   const [error, setError] = React.useState<string | null>(null)
   const [loading, setLoading] = React.useState(false)
   const [userCount, setUserCount] = React.useState<number | null>(null)
