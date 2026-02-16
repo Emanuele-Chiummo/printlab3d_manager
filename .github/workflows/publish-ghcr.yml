@@ -32,8 +32,8 @@ jobs:
           context: ./backend
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ toLower(env.IMAGE_PREFIX) }}-backend:latest
+            ${{ env.REGISTRY }}/${{ toLower(env.IMAGE_PREFIX) }}-backend:${{ github.sha }}
           platforms: linux/amd64
 
   build-web:
@@ -55,6 +55,6 @@ jobs:
           file: ./frontend/Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-web:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-web:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ toLower(env.IMAGE_PREFIX) }}-web:latest
+            ${{ env.REGISTRY }}/${{ toLower(env.IMAGE_PREFIX) }}-web:${{ github.sha }}
           platforms: linux/amd64
