@@ -3,6 +3,8 @@ name: Build & Push to GHCR
 on:
   push:
     branches: ["main"]
+    tags:
+      - "v*"
   workflow_dispatch:
 
 permissions:
@@ -38,6 +40,7 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ steps.lowercase.outputs.owner }}/printlab3d-manager-backend:latest
             ${{ env.REGISTRY }}/${{ steps.lowercase.outputs.owner }}/printlab3d-manager-backend:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ steps.lowercase.outputs.owner }}/printlab3d-manager-backend:${{ github.ref_name }}
           platforms: linux/amd64
 
   build-web:
@@ -65,4 +68,5 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ steps.lowercase.outputs.owner }}/printlab3d-manager-web:latest
             ${{ env.REGISTRY }}/${{ steps.lowercase.outputs.owner }}/printlab3d-manager-web:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ steps.lowercase.outputs.owner }}/printlab3d-manager-web:${{ github.ref_name }}
           platforms: linux/amd64
