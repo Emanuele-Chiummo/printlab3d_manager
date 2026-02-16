@@ -37,6 +37,8 @@ jobs:
         with:
           context: ./backend
           push: true
+          build-args: |
+            VERSION=${{ github.ref_name }}
           tags: |
             ${{ env.REGISTRY }}/${{ steps.lowercase.outputs.owner }}/printlab3d-manager-backend:latest
             ${{ env.REGISTRY }}/${{ steps.lowercase.outputs.owner }}/printlab3d-manager-backend:${{ github.sha }}
@@ -65,6 +67,8 @@ jobs:
           context: ./frontend
           file: ./frontend/Dockerfile
           push: true
+          build-args: |
+            VERSION=${{ github.ref_name }}
           tags: |
             ${{ env.REGISTRY }}/${{ steps.lowercase.outputs.owner }}/printlab3d-manager-web:latest
             ${{ env.REGISTRY }}/${{ steps.lowercase.outputs.owner }}/printlab3d-manager-web:${{ github.sha }}
