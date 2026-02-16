@@ -1,6 +1,7 @@
 import React from 'react'
 import { Box, Typography, TextField, Button, Paper, Tabs, Tab, Grid, Divider } from '@mui/material'
 import { getPreventivoSettings, setPreventivoSettings, PreventivoSettings } from '../api/settings'
+import { showSuccess } from '../utils/toast'
 
 export default function ImpostazioniPage() {
   const [settings, setSettings] = React.useState<PreventivoSettings | null>(null)
@@ -30,7 +31,7 @@ export default function ImpostazioniPage() {
     setSaving(true)
     await setPreventivoSettings(settings)
     setSaving(false)
-    alert('Impostazioni salvate!')
+    showSuccess('Impostazioni salvate!')
   }
 
   if (loading || !settings) return <Typography sx={{ mt: 4, textAlign: 'center' }}>Caricamento...</Typography>

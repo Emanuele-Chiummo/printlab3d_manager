@@ -33,6 +33,7 @@ import CancelIcon from '@mui/icons-material/Cancel'
 import WorkIcon from '@mui/icons-material/Work'
 import api from '../api/client'
 import { Customer, Filament, Quote, QuoteVersion } from '../api/types'
+import { showSuccess, showError } from '../utils/toast'
 // ...existing code...
 import { useAuth } from '../components/AuthProvider'
 
@@ -187,7 +188,7 @@ export default function PreventiviPage() {
       }])
       await loadVersions(selected.id)
     } catch (error: any) {
-      alert('Errore nella creazione della versione: ' + (error.response?.data?.detail || error.message))
+      showError('Errore nella creazione della versione: ' + (error.response?.data?.detail || error.message))
     }
   }
 
@@ -213,17 +214,17 @@ export default function PreventiviPage() {
       await loadQuotes()
     } catch (err: any) {
       const detail = err.response?.data?.detail || 'Errore durante l\'eliminazione'
-      alert(detail)
+      showError(detail)
     }
   }
 
   const createJob = async (versionId: number) => {
     try {
       await api.post('/api/v1/jobs/from-quote', { quote_version_id: versionId })
-      alert('Job creato con successo!')
+      showSuccess('Job creato con successo!')
     } catch (err: any) {
       const detail = err.response?.data?.detail || 'Errore durante la creazione del job'
-      alert(detail)
+      showError(detail)
     }
   }
 
@@ -252,7 +253,7 @@ export default function PreventiviPage() {
         document.body.removeChild(link);
       }, 100);
     } catch (err) {
-      alert('Errore nel download del PDF');
+      showError('Errore nel download del PDF');
     }
   }
 
@@ -269,7 +270,7 @@ export default function PreventiviPage() {
         window.URL.revokeObjectURL(url)
       }, 1000)
     } catch (err) {
-      alert('Errore nella preview del PDF')
+      showError('Errore nella preview del PDF')
     }
   }
 
@@ -588,7 +589,7 @@ export default function PreventiviPage() {
                   <MenuItem value="">(nessuno)</MenuItem>
                   {filaments.map((f) => (
                     <MenuItem key={f.id} value={f.id}>
-                      {f.materiale} {f.marca} {f.colore}
+                      {f.materiale}{f.tipo ? ` ${f.tipo}` : ''} {f.marca} {f.colore} - {f.stato}
                     </MenuItem>
                   ))}
                 </TextField>

@@ -6,6 +6,7 @@ from app.models.inventory import MovementType, FilamentStatus
 
 class FilamentBase(BaseModel):
     materiale: str
+    tipo: str = ""
     marca: str = ""
     colore: str = ""
     colore_hex: str = ""
@@ -26,6 +27,7 @@ class FilamentCreate(FilamentBase):
 
 class FilamentUpdate(BaseModel):
     materiale: str | None = None
+    tipo: str | None = None
     marca: str | None = None
     colore: str | None = None
     colore_hex: str | None = None

@@ -1,7 +1,11 @@
 import React from 'react'
-import { Box, Button, Card, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography, Chip, MenuItem, Alert, CircularProgress, Paper } from '@mui/material'
+import { Box, Button, Card, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography, Chip, MenuItem, Alert, CircularProgress, Paper, IconButton, Menu } from '@mui/material'
+import MoreVertIcon from '@mui/icons-material/MoreVert'
+import ToggleOnIcon from '@mui/icons-material/ToggleOn'
+import ToggleOffIcon from '@mui/icons-material/ToggleOff'
 import api from '../api/client'
 import { User, Role } from '../types'
+import { showError } from '../utils/toast'
 
 const roleOptions: Role[] = ['ADMIN', 'OPERATORE', 'COMMERCIALE', 'VIEWER']
 
@@ -11,6 +15,7 @@ export default function UtentiPage() {
   const [form, setForm] = React.useState<Partial<User> & { password?: string }>({ role: 'VIEWER' })
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [anchorEl, setAnchorEl] = React.useState<{ [key: number]: HTMLElement | null }>({})
 
   const load = () => api.get('/api/v1/users/').then(r => setRows(r.data))
   React.useEffect(() => { load() }, [])
@@ -38,6 +43,24 @@ export default function UtentiPage() {
       setError(err?.response?.data?.detail || 'Errore nella creazione')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleMenuOpen = (userId: number, event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl({ ...anchorEl, [userId]: event.currentTarget })
+  }
+
+  const handleMenuClose = (userId: number) => {
+    setAnchorEl({ ...anchorEl, [userId]: null })
+  }
+
+  const toggleActive = async (userId: number) => {
+    try {
+      await api.post(`/api/v1/users/${userId}/toggle-active`)
+      await load()
+      handleMenuClose(userId)
+    } catch (err: any) {
+      showError('Errore: ' + (err?.response?.data?.detail || 'Impossibile modificare lo stato'))
     }
   }
 
@@ -87,6 +110,7 @@ export default function UtentiPage() {
                 <TableCell sx={{ fontWeight: 600, display: { xs: 'none', sm: 'table-cell' } }}>Ruolo</TableCell>
                 <TableCell sx={{ fontWeight: 600, display: { xs: 'none', md: 'table-cell' } }}>Stato</TableCell>
                 <TableCell sx={{ fontWeight: 600, display: { xs: 'none', lg: 'table-cell' } }}>Reset Password</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Azioni</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -97,6 +121,30 @@ export default function UtentiPage() {
                   <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{u.role}</TableCell>
                   <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{u.is_active ? <Chip label="Attivo" color="success" size="small" /> : <Chip label="Disattivo" color="default" size="small" />}</TableCell>
                   <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' } }}>{u.must_reset_password ? <Chip label="Da resettare" color="warning" size="small" /> : <Chip label="OK" color="success" size="small" />}</TableCell>
+                  <TableCell>
+                    <IconButton size="small" onClick={(e) => handleMenuOpen(u.id, e)}>
+                      <MoreVertIcon />
+                    </IconButton>
+                    <Menu
+                      anchorEl={anchorEl[u.id]}
+                      open={Boolean(anchorEl[u.id])}
+                      onClose={() => handleMenuClose(u.id)}
+                    >
+                      <MenuItem onClick={() => toggleActive(u.id)}>
+                        {u.is_active ? (
+                          <>
+                            <ToggleOffIcon sx={{ mr: 1, color: 'error.main' }} />
+                            Disattiva
+                          </>
+                        ) : (
+                          <>
+                            <ToggleOnIcon sx={{ mr: 1, color: 'success.main' }} />
+                            Attiva
+                          </>
+                        )}
+                      </MenuItem>
+                    </Menu>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

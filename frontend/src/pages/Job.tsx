@@ -28,6 +28,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert'
 import api from '../api/client'
 import { Filament, Job } from '../api/types'
 import { useAuth } from '../components/AuthProvider'
+import { showError } from '../utils/toast'
 
 const statusOptions = ['PIANIFICATO', 'IN_CORSO', 'COMPLETATO', 'ANNULLATO']
 
@@ -53,7 +54,7 @@ export default function JobPage() {
       await load()
     } catch (err: any) {
       const detail = err.response?.data?.detail || 'Errore durante l\'eliminazione'
-      alert(detail)
+      showError(detail)
     }
   }
 

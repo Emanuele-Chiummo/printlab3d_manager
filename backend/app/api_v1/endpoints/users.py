@@ -91,3 +91,18 @@ def reset_password(user_id: int, payload: UserUpdate, db: Session = Depends(get_
     db.commit()
     db.refresh(u)
     return u
+
+
+@router.post("/{user_id}/toggle-active", response_model=UserOut, dependencies=[Depends(require_roles(UserRole.admin))])
+def toggle_active(user_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    u = db.get(User, user_id)
+    if not u:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+    if u.id == current.id:
+        raise HTTPException(status_code=400, detail="Non puoi disattivare il tuo account")
+    u.is_active = not u.is_active
+    db.commit()
+    db.refresh(u)
+    log_action(db, current.id, "User", u.id, "TOGGLE_ACTIVE")
+    db.commit()
+    return u

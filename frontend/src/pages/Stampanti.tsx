@@ -25,6 +25,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import { useAuth } from '../components/AuthProvider'
 import api from '../api/client'
+import { showError } from '../utils/toast'
 
 type Stampante = {
   id: number
@@ -99,7 +100,7 @@ export default function StampantiPage() {
       await load()
     } catch (err: any) {
       const detail = err.response?.data?.detail || 'Errore durante il salvataggio'
-      alert(detail)
+      showError(detail)
     }
   }
 
@@ -110,7 +111,7 @@ export default function StampantiPage() {
       await load()
     } catch (err: any) {
       const detail = err.response?.data?.detail || "Errore durante l'eliminazione"
-      alert(detail)
+      showError(detail)
     }
   }
 

@@ -28,6 +28,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import api from '../api/client'
+import { showInfo } from '../utils/toast'
 import { useAuth } from '../components/AuthProvider'
 import { CostCategory, CostEntry, CostMonthly, CostByJob, CostByCustomer, Job, Customer } from '../api/types'
 
@@ -105,7 +106,7 @@ export default function CostiPage() {
   }, [filterFrom, filterTo, filterCategory])
 
   const createCategory = async () => {
-    if (!newCat.nome.trim()) return alert('Inserisci un nome categoria')
+    if (!newCat.nome.trim()) return showInfo('Inserisci un nome categoria')
     await api.post('/api/v1/costs/categories', newCat)
     setCatDialog(false)
     setNewCat({ nome: '', descrizione: '' })
@@ -120,8 +121,8 @@ export default function CostiPage() {
       job_id: newEntry.job_id ? Number(newEntry.job_id) : null,
       note: newEntry.note,
     }
-    if (!payload.categoria_id) return alert('Seleziona una categoria')
-    if (!payload.periodo_yyyymm) return alert('Periodo obbligatorio (YYYY-MM)')
+    if (!payload.categoria_id) return showInfo('Seleziona una categoria')
+    if (!payload.periodo_yyyymm) return showInfo('Periodo obbligatorio (YYYY-MM)')
     await api.post('/api/v1/costs/entries', payload)
     setEntryDialog(false)
     setNewEntry({ categoria_id: categories[0]?.id ?? 0, importo_eur: 0, periodo_yyyymm: yyyymmNow(), job_id: '', note: '' })

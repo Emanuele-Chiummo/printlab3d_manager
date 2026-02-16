@@ -26,6 +26,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert'
 import { loadLocations, createLocation, updateLocation, deleteLocation } from '../services/locations'
 import { Location } from '../api/types'
 import { useAuth } from '../components/AuthProvider'
+import { showError } from '../utils/toast'
 
 const empty: Partial<Location> = { nome: '', tipo: 'SLOT', parent_id: null }
 
@@ -73,7 +74,7 @@ export default function UbicazioniPage() {
       await load()
     } catch (err: any) {
       const detail = err.response?.data?.detail || 'Errore durante l\'eliminazione'
-      alert(detail)
+      showError(detail)
     }
   }
 

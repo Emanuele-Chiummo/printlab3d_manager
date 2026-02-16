@@ -35,6 +35,7 @@ import { useAuth } from '../components/AuthProvider'
 
 const empty: Partial<Filament> = {
   materiale: 'PLA',
+  tipo: '',
   marca: '',
   colore: '',
   colore_hex: '#FFFFFF',
@@ -121,6 +122,7 @@ export default function FilamentiPage() {
       const searchLower = searchText.toLowerCase()
       const matchSearch = !searchText || 
         r.materiale.toLowerCase().includes(searchLower) ||
+        r.tipo.toLowerCase().includes(searchLower) ||
         r.marca.toLowerCase().includes(searchLower) ||
         r.colore.toLowerCase().includes(searchLower)
       const matchStato = !filterStato || r.stato === filterStato
@@ -160,7 +162,7 @@ export default function FilamentiPage() {
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 2 }}>
         <TextField 
           size="small" 
-          placeholder="Cerca materiale, marca, colore..." 
+          placeholder="Cerca materiale, tipo, marca, colore..." 
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           sx={{ flex: 1 }}
@@ -214,6 +216,7 @@ export default function FilamentiPage() {
             <TableHead>
               <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
                 <TableCell sx={{ fontWeight: 600 }}>Materiale</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Tipo</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Marca</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Colore</TableCell>
                 <TableCell sx={{ fontWeight: 600, display: { xs: 'none', md: 'table-cell' } }}>Ubicazione</TableCell>
@@ -232,6 +235,7 @@ export default function FilamentiPage() {
             return (
               <TableRow key={r.id} hover>
                 <TableCell>{r.materiale}</TableCell>
+                <TableCell>{r.tipo}</TableCell>
                 <TableCell>{r.marca}</TableCell>
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -324,6 +328,7 @@ export default function FilamentiPage() {
         <DialogContent>
           <Box sx={{ display: 'grid', gap: 2, mt: 1, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
             <TextField label="Materiale" value={form.materiale || ''} onChange={(e) => setForm((s) => ({ ...s, materiale: e.target.value }))} />
+            <TextField label="Tipo" value={form.tipo || ''} onChange={(e) => setForm((s) => ({ ...s, tipo: e.target.value }))} placeholder="es. Basic, Plus, Matter" />
             <TextField label="Marca" value={form.marca || ''} onChange={(e) => setForm((s) => ({ ...s, marca: e.target.value }))} />
             <TextField label="Colore" value={form.colore || ''} onChange={(e) => setForm((s) => ({ ...s, colore: e.target.value }))} />
             <Box>

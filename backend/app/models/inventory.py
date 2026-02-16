@@ -27,6 +27,7 @@ class Filament(Base, TimestampMixin, AuditUserMixin):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     materiale: Mapped[str] = mapped_column(String(50))
+    tipo: Mapped[str] = mapped_column(String(50), default="")
     marca: Mapped[str] = mapped_column(String(100), default="")
     colore: Mapped[str] = mapped_column(String(100), default="")
     colore_hex: Mapped[str] = mapped_column(String(7), default="")

@@ -9,6 +9,7 @@ export interface User {
 export interface Filament {
   id: number
   materiale: string
+  tipo: string
   marca: string
   colore: string
   colore_hex: string
