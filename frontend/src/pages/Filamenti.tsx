@@ -136,68 +136,70 @@ export default function FilamentiPage() {
       <Box
         sx={{
           display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          alignItems: { md: 'center' },
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'flex-start', sm: 'center' },
           justifyContent: 'space-between',
-          mt: 3,
-          mb: 3,
-          gap: 2,
+          mt: { xs: 2, md: 3 },
+          mb: { xs: 2, md: 3 },
+          gap: { xs: 1.5, sm: 2 },
         }}
       >
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, fontSize: { xs: '1.25rem', md: '1.5rem' } }}>
             Filamenti
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: { xs: '0.8rem', md: '0.875rem' } }}>
             Gestisci materiali, scorte e ubicazioni con filtri avanzati.
           </Typography>
         </Box>
         {canWrite && (
-          <Button variant="contained" onClick={onNew}>
+          <Button variant="contained" onClick={onNew} fullWidth={false} sx={{ minWidth: { xs: '100%', sm: 'auto' } }}>
             Nuovo filamento
           </Button>
         )}
       </Box>
 
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 2 }}>
+      <Stack direction="column" spacing={1.5} sx={{ mb: 2 }}>
         <TextField 
           size="small" 
           placeholder="Cerca materiale, tipo, marca, colore..." 
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          sx={{ flex: 1 }}
+          fullWidth
         />
-        <FormControl size="small" sx={{ minWidth: 150 }}>
-          <InputLabel>Stato</InputLabel>
-          <Select
-            value={filterStato}
-            label="Stato"
-            onChange={(e) => setFilterStato(e.target.value)}
-          >
-            <MenuItem value=""><em>Tutti</em></MenuItem>
-            {statoOptions.map(opt => (
-              <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl size="small" sx={{ minWidth: 200 }}>
-          <InputLabel>Ubicazione</InputLabel>
-          <Select
-            value={filterUbicazione}
-            label="Ubicazione"
-            onChange={(e) => setFilterUbicazione(e.target.value)}
-          >
-            <MenuItem value=""><em>Tutte</em></MenuItem>
-            {locations.map(loc => (
-              <MenuItem key={loc.id} value={String(loc.id)}>{loc.nome}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        {(searchText || filterStato || filterUbicazione) && (
-          <Button size="small" onClick={() => { setSearchText(''); setFilterStato(''); setFilterUbicazione('') }}>
-            Reset filtri
-          </Button>
-        )}
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+          <FormControl size="small" fullWidth sx={{ sm: { maxWidth: 200 } }}>
+            <InputLabel>Stato</InputLabel>
+            <Select
+              value={filterStato}
+              label="Stato"
+              onChange={(e) => setFilterStato(e.target.value)}
+            >
+              <MenuItem value=""><em>Tutti</em></MenuItem>
+              {statoOptions.map(opt => (
+                <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl size="small" fullWidth sx={{ sm: { maxWidth: 200 } }}>
+            <InputLabel>Ubicazione</InputLabel>
+            <Select
+              value={filterUbicazione}
+              label="Ubicazione"
+              onChange={(e) => setFilterUbicazione(e.target.value)}
+            >
+              <MenuItem value=""><em>Tutte</em></MenuItem>
+              {locations.map(loc => (
+                <MenuItem key={loc.id} value={String(loc.id)}>{loc.nome}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          {(searchText || filterStato || filterUbicazione) && (
+            <Button size="small" onClick={() => { setSearchText(''); setFilterStato(''); setFilterUbicazione('') }} sx={{ minWidth: { xs: '100%', sm: 'auto' } }}>
+              Reset filtri
+            </Button>
+          )}
+        </Stack>
       </Stack>
 
       <Paper sx={{ p: 2.5 }}>
@@ -211,7 +213,7 @@ export default function FilamentiPage() {
             </Typography>
           </Box>
         </Stack>
-        <TableContainer sx={{ maxHeight: 520 }}>
+        <TableContainer sx={{ maxHeight: 520, overflowX: 'auto' }}>
           <Table size="small" stickyHeader>
             <TableHead>
               <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>

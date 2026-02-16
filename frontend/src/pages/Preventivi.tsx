@@ -308,7 +308,7 @@ export default function PreventiviPage() {
       </Box>
 
       <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', lg: '1fr 1.2fr' } }}>
-        <Paper sx={{ p: 2.5 }}>
+        <Paper sx={{ p: { xs: 1.5, md: 2.5 } }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
@@ -319,7 +319,7 @@ export default function PreventiviPage() {
               </Typography>
             </Box>
           </Stack>
-          <TableContainer sx={{ maxHeight: 520 }}>
+          <TableContainer sx={{ maxHeight: 520, overflowX: 'auto' }}>
             <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
@@ -350,7 +350,7 @@ export default function PreventiviPage() {
           </TableContainer>
         </Paper>
 
-        <Paper sx={{ p: 2.5 }}>
+        <Paper sx={{ p: { xs: 1.5, md: 2.5 } }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
@@ -371,7 +371,7 @@ export default function PreventiviPage() {
               <Typography variant="body2">Seleziona un preventivo per vedere i dettagli.</Typography>
             </Box>
           ) : (
-            <TableContainer sx={{ maxHeight: 520 }}>
+            <TableContainer sx={{ maxHeight: 520, overflowX: 'auto' }}>
               <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>

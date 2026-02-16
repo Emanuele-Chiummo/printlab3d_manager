@@ -293,7 +293,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         }}
       >
         <Toolbar sx={{ minHeight: 'auto', py: { xs: 0.5, md: 1 } }} />
-        <Box sx={{ width: '100%', maxWidth: contentMaxWidth, mx: 'auto', px: { xs: 2, md: 4 }, pb: 6 }}>{children}</Box>
+        <Box sx={{ width: '100%', maxWidth: contentMaxWidth, mx: 'auto', px: { xs: 1.5, sm: 2, md: 4 }, pb: 4 }}>{children}</Box>
       </Box>
     </Box>
   )

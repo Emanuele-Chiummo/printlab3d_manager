@@ -153,46 +153,49 @@ export default function CostiPage() {
       <Box
         sx={{
           display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          alignItems: { md: 'center' },
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'flex-start', sm: 'center' },
           justifyContent: 'space-between',
-          mt: 3,
-          mb: 3,
-          gap: 2,
+          mt: { xs: 2, md: 3 },
+          mb: { xs: 2, md: 3 },
+          gap: { xs: 1.5, sm: 2 },
         }}
       >
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, fontSize: { xs: '1.25rem', md: '1.5rem' } }}>
             Costi
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: { xs: '0.8rem', md: '0.875rem' } }}>
             Monitora registrazioni, categorie e analisi per periodo, job e cliente.
           </Typography>
         </Box>
       </Box>
 
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }}>
+      <Paper sx={{ p: { xs: 1.5, md: 2 }, mb: 2 }}>
+        <Stack direction="column" spacing={1.5} alignItems="stretch">
           <TextField
             label="Periodo da (YYYY-MM)"
             value={filterFrom}
             onChange={(e) => setFilterFrom(e.target.value)}
             placeholder="2026-02"
-            sx={{ width: 220 }}
+            fullWidth
+            size="small"
           />
           <TextField
             label="Periodo a (YYYY-MM)"
             value={filterTo}
             onChange={(e) => setFilterTo(e.target.value)}
             placeholder="2026-03"
-            sx={{ width: 220 }}
+            fullWidth
+            size="small"
           />
           <TextField
             select
             label="Categoria"
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            sx={{ width: 260 }}
+            fullWidth
+            size="small"
           >
             <MenuItem value="">Tutte</MenuItem>
             {categories.map((c) => (

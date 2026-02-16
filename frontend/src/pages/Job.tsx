@@ -99,25 +99,25 @@ export default function JobPage() {
       <Box
         sx={{
           display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          alignItems: { md: 'center' },
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'flex-start', sm: 'center' },
           justifyContent: 'space-between',
-          mt: 3,
-          mb: 3,
-          gap: 2,
+          mt: { xs: 2, md: 3 },
+          mb: { xs: 2, md: 3 },
+          gap: { xs: 1.5, sm: 2 },
         }}
       >
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, fontSize: { xs: '1.25rem', md: '1.5rem' } }}>
             Job
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: { xs: '0.8rem', md: '0.875rem' } }}>
             Monitora lavori, consumi e margini operativi.
           </Typography>
         </Box>
       </Box>
 
-      <Paper sx={{ p: 2.5 }}>
+      <Paper sx={{ p: { xs: 1.5, md: 2.5 } }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
@@ -128,7 +128,7 @@ export default function JobPage() {
             </Typography>
           </Box>
         </Stack>
-        <TableContainer sx={{ maxHeight: 520 }}>
+        <TableContainer sx={{ maxHeight: 520, overflowX: 'auto' }}>
           <Table size="small" stickyHeader>
             <TableHead>
               <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
