@@ -587,7 +587,9 @@ export default function PreventiviPage() {
                   onChange={(e) => updateLine(idx, 'filament_id', e.target.value)}
                 >
                   <MenuItem value="">(nessuno)</MenuItem>
-                  {filaments.map((f) => (
+                  {filaments
+                    .filter((f) => f.stato !== 'FINITO' || String(f.id) === String(line.filament_id))
+                    .map((f) => (
                     <MenuItem key={f.id} value={f.id}>
                       {f.materiale}{f.tipo ? ` ${f.tipo}` : ''} {f.marca} {f.colore} - {f.stato}
                     </MenuItem>

@@ -15,11 +15,11 @@ import {
   TableCell,
   TableContainer,
   TableHead,
+  TableSortLabel,
   TableRow,
   TextField,
   Typography,
   Chip,
-  MenuItem,
   Select,
   FormControl,
   InputLabel,
@@ -58,6 +58,38 @@ const statoOptions = [
   { value: 'DA_ASCIUGARE', label: 'Da asciugare', color: 'default' },
 ] as const
 
+type Order = 'asc' | 'desc'
+type FilamentOrderBy =
+  | 'materiale'
+  | 'tipo'
+  | 'marca'
+  | 'colore'
+  | 'ubicazione'
+  | 'data_acquisto'
+  | 'peso_residuo_g'
+  | 'soglia_min_g'
+  | 'costo_spool_eur'
+  | 'eur_g'
+  | 'stato'
+
+function compareNullable(a: string | number | null, b: string | number | null) {
+  if (a == null && b == null) return 0
+  if (a == null) return 1
+  if (b == null) return -1
+  if (typeof a === 'number' && typeof b === 'number') return a - b
+  return String(a).localeCompare(String(b), 'it', { sensitivity: 'base' })
+}
+
+function stableSort<T>(array: readonly T[], comparator: (a: T, b: T) => number) {
+  const stabilized = array.map((el, index) => [el, index] as const)
+  stabilized.sort((a, b) => {
+    const order = comparator(a[0], b[0])
+    if (order !== 0) return order
+    return a[1] - b[1]
+  })
+  return stabilized.map((el) => el[0])
+}
+
 export default function FilamentiPage() {
   const { user } = useAuth()
   const [rows, setRows] = React.useState<Filament[]>([])
@@ -69,6 +101,8 @@ export default function FilamentiPage() {
   const [filterStato, setFilterStato] = React.useState('')
   const [filterUbicazione, setFilterUbicazione] = React.useState('')
   const [anchorEl, setAnchorEl] = React.useState<{ [key: number]: HTMLElement | null }>({})
+  const [order, setOrder] = React.useState<Order>('asc')
+  const [orderBy, setOrderBy] = React.useState<FilamentOrderBy | ''>('colore')
 
   const load = () => api.get('/api/v1/filaments/').then((r) => setRows(r.data))
   const loadLocations = () => api.get('/api/v1/locations/').then((r) => setLocations(r.data))
@@ -117,8 +151,61 @@ export default function FilamentiPage() {
     await load()
   }
 
+  const locationNameById = React.useMemo(() => {
+    const map = new Map<number, string>()
+    locations.forEach((l) => {
+      if (typeof l?.id === 'number') map.set(l.id, String(l.nome ?? ''))
+    })
+    return map
+  }, [locations])
+
+  const getSortValue = React.useCallback(
+    (r: Filament, key: FilamentOrderBy): string | number | null => {
+      switch (key) {
+        case 'materiale':
+          return r.materiale ?? ''
+        case 'tipo':
+          return r.tipo ?? ''
+        case 'marca':
+          return r.marca ?? ''
+        case 'colore':
+          return r.colore ?? ''
+        case 'ubicazione':
+          return r.ubicazione_id ? locationNameById.get(r.ubicazione_id) ?? '' : ''
+        case 'data_acquisto':
+          return r.data_acquisto ? new Date(r.data_acquisto).getTime() : null
+        case 'peso_residuo_g':
+          return r.peso_residuo_g ?? 0
+        case 'soglia_min_g':
+          return r.soglia_min_g ?? 0
+        case 'costo_spool_eur':
+          return r.costo_spool_eur ?? 0
+        case 'eur_g':
+          return r.peso_nominale_g > 0 ? r.costo_spool_eur / r.peso_nominale_g : null
+        case 'stato':
+          return statoOptions.find((s) => s.value === r.stato)?.label || r.stato
+        default:
+          return ''
+      }
+    },
+    [locationNameById]
+  )
+
+  const handleRequestSort = (property: FilamentOrderBy) => {
+    if (orderBy === property) {
+      setOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))
+      return
+    }
+    setOrderBy(property)
+    setOrder('asc')
+  }
+
   const filteredRows = React.useMemo(() => {
     return rows.filter(r => {
+      // Hide finished filaments from the table by default.
+      // They remain accessible by explicitly filtering Stato = FINITO.
+      if (filterStato !== 'FINITO' && r.stato === 'FINITO') return false
+
       const searchLower = searchText.toLowerCase()
       const matchSearch = !searchText || 
         r.materiale.toLowerCase().includes(searchLower) ||
@@ -130,6 +217,17 @@ export default function FilamentiPage() {
       return matchSearch && matchStato && matchUbicazione
     })
   }, [rows, searchText, filterStato, filterUbicazione])
+
+  const visibleRows = React.useMemo(() => {
+    if (!orderBy) return filteredRows
+    const comparator = (a: Filament, b: Filament) => {
+      const av = getSortValue(a, orderBy)
+      const bv = getSortValue(b, orderBy)
+      const cmp = compareNullable(av, bv)
+      return order === 'asc' ? cmp : -cmp
+    }
+    return stableSort(filteredRows, comparator)
+  }, [filteredRows, getSortValue, order, orderBy])
 
   return (
     <>
@@ -217,23 +315,68 @@ export default function FilamentiPage() {
           <Table size="small" stickyHeader>
             <TableHead>
               <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
-                <TableCell sx={{ fontWeight: 600 }}>Materiale</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Tipo</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Marca</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Colore</TableCell>
-                <TableCell sx={{ fontWeight: 600, display: { xs: 'none', md: 'table-cell' } }}>Ubicazione</TableCell>
-                <TableCell sx={{ fontWeight: 600, display: { xs: 'none', lg: 'table-cell' } }}>Data acquisto</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 600 }}>Residuo (g)</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 600, display: { xs: 'none', sm: 'table-cell' } }}>Soglia (g)</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 600, display: { xs: 'none', lg: 'table-cell' } }}>Costo</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 600, display: { xs: 'none', lg: 'table-cell' } }}>€/g</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Stato</TableCell>
+                <TableCell sx={{ fontWeight: 600 }} sortDirection={orderBy === 'materiale' ? order : false}>
+                  <TableSortLabel active={orderBy === 'materiale'} direction={orderBy === 'materiale' ? order : 'asc'} onClick={() => handleRequestSort('materiale')}>
+                    Materiale
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600 }} sortDirection={orderBy === 'tipo' ? order : false}>
+                  <TableSortLabel active={orderBy === 'tipo'} direction={orderBy === 'tipo' ? order : 'asc'} onClick={() => handleRequestSort('tipo')}>
+                    Tipo
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600 }} sortDirection={orderBy === 'marca' ? order : false}>
+                  <TableSortLabel active={orderBy === 'marca'} direction={orderBy === 'marca' ? order : 'asc'} onClick={() => handleRequestSort('marca')}>
+                    Marca
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600 }} sortDirection={orderBy === 'colore' ? order : false}>
+                  <TableSortLabel active={orderBy === 'colore'} direction={orderBy === 'colore' ? order : 'asc'} onClick={() => handleRequestSort('colore')}>
+                    Colore
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, display: { xs: 'none', md: 'table-cell' } }} sortDirection={orderBy === 'ubicazione' ? order : false}>
+                  <TableSortLabel active={orderBy === 'ubicazione'} direction={orderBy === 'ubicazione' ? order : 'asc'} onClick={() => handleRequestSort('ubicazione')}>
+                    Ubicazione
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, display: { xs: 'none', lg: 'table-cell' } }} sortDirection={orderBy === 'data_acquisto' ? order : false}>
+                  <TableSortLabel active={orderBy === 'data_acquisto'} direction={orderBy === 'data_acquisto' ? order : 'asc'} onClick={() => handleRequestSort('data_acquisto')}>
+                    Data acquisto
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600 }} sortDirection={orderBy === 'peso_residuo_g' ? order : false}>
+                  <TableSortLabel active={orderBy === 'peso_residuo_g'} direction={orderBy === 'peso_residuo_g' ? order : 'asc'} onClick={() => handleRequestSort('peso_residuo_g')}>
+                    Residuo (g)
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600, display: { xs: 'none', sm: 'table-cell' } }} sortDirection={orderBy === 'soglia_min_g' ? order : false}>
+                  <TableSortLabel active={orderBy === 'soglia_min_g'} direction={orderBy === 'soglia_min_g' ? order : 'asc'} onClick={() => handleRequestSort('soglia_min_g')}>
+                    Soglia (g)
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600, display: { xs: 'none', lg: 'table-cell' } }} sortDirection={orderBy === 'costo_spool_eur' ? order : false}>
+                  <TableSortLabel active={orderBy === 'costo_spool_eur'} direction={orderBy === 'costo_spool_eur' ? order : 'asc'} onClick={() => handleRequestSort('costo_spool_eur')}>
+                    Costo
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600, display: { xs: 'none', lg: 'table-cell' } }} sortDirection={orderBy === 'eur_g' ? order : false}>
+                  <TableSortLabel active={orderBy === 'eur_g'} direction={orderBy === 'eur_g' ? order : 'asc'} onClick={() => handleRequestSort('eur_g')}>
+                    €/g
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600 }} sortDirection={orderBy === 'stato' ? order : false}>
+                  <TableSortLabel active={orderBy === 'stato'} direction={orderBy === 'stato' ? order : 'asc'} onClick={() => handleRequestSort('stato')}>
+                    Stato
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell align="right" sx={{ fontWeight: 600 }} />
               </TableRow>
             </TableHead>
         <TableBody>
-          {filteredRows.map((r) => {
+          {visibleRows.map((r) => {
             const low = r.peso_residuo_g <= r.soglia_min_g
+            const isFinito = r.stato === 'FINITO'
             return (
               <TableRow key={r.id} hover>
                 <TableCell>{r.materiale}</TableCell>
@@ -259,7 +402,7 @@ export default function FilamentiPage() {
                 <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
                   {r.ubicazione_id ? (
                     <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
-                      {locations.find(l => l.id === r.ubicazione_id)?.nome || `ID ${r.ubicazione_id}`}
+                      {locationNameById.get(r.ubicazione_id) || `ID ${r.ubicazione_id}`}
                     </Typography>
                   ) : (
                     <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem', fontStyle: 'italic' }}>—</Typography>
@@ -281,12 +424,14 @@ export default function FilamentiPage() {
                   {r.peso_nominale_g > 0 ? `€ ${(r.costo_spool_eur / r.peso_nominale_g).toFixed(3)}` : '—'}
                 </TableCell>
                 <TableCell>
-                  <Chip 
-                    label={statoOptions.find(s => s.value === r.stato)?.label || r.stato} 
-                    color={(statoOptions.find(s => s.value === r.stato)?.color as any) || 'default'} 
-                    size="small" 
-                  />
-                  {low && <Chip label="Stock basso" color="warning" size="small" sx={{ ml: 1 }} />}
+                  <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ alignItems: 'center' }}>
+                    <Chip
+                      label={statoOptions.find(s => s.value === r.stato)?.label || r.stato}
+                      color={(statoOptions.find(s => s.value === r.stato)?.color as any) || 'default'}
+                      size="small"
+                    />
+                    {low && !isFinito && <Chip label="Stock basso" color="warning" size="small" />}
+                  </Stack>
                 </TableCell>
                 <TableCell align="right">
                   <IconButton

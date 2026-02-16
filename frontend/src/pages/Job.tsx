@@ -225,7 +225,9 @@ export default function JobPage() {
         <DialogContent>
           <Box sx={{ display: 'grid', gap: 2, mt: 1 }}>
             <TextField select label="Filamento" value={consFil} onChange={(e) => setConsFil(e.target.value as any)}>
-              {filaments.map((f) => (
+              {filaments
+                .filter((f) => f.stato !== 'FINITO' || (consFil && f.id === Number(consFil)))
+                .map((f) => (
                 <MenuItem key={f.id} value={f.id}>
                   {f.materiale} {f.marca} {f.colore}
                 </MenuItem>
