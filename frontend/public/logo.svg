@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none">
+  <defs>
+    <linearGradient id="g" x1="40" y1="40" x2="216" y2="216" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#0ea5e9"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="24" y="24" width="208" height="208" rx="52" fill="url(#g)"/>
+
+  <!-- Stylized cube + nozzle (simple, original) -->
+  <path d="M128 68 78 94v56l50 26 50-26V94l-50-26Z" fill="#ffffff" opacity="0.95"/>
+  <path d="M128 68v58l50-32" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+  <path d="M128 126 78 94" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+
+  <path d="M170 168c0 10.5-18.8 19-42 19s-42-8.5-42-19" stroke="#ffffff" stroke-width="12" stroke-linecap="round" opacity="0.95"/>
+  <path d="M176 132h-40c-4.4 0-8 3.6-8 8v18" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+  <path d="M176 132 188 120" stroke="#ffffff" stroke-width="12" stroke-linecap="round" opacity="0.95"/>
+</svg>

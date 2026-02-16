@@ -117,18 +117,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Box
-              sx={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                background: 'linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)',
-                display: 'grid',
-                placeItems: 'center',
-                color: '#fff',
-              }}
-            >
-              <PrintIcon sx={{ fontSize: 22 }} />
-            </Box>
+              component="img"
+              src="/logo.svg"
+              alt="PrintLab"
+              sx={{ width: 36, height: 36, borderRadius: 2.5, display: 'block' }}
+            />
             <Box>
               <Typography variant="h6" noWrap sx={{ fontWeight: 700 }}>
                 PrintLab OS

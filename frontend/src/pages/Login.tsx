@@ -1,7 +1,6 @@
 import React from 'react'
 import { Box, Button, Card, TextField, Typography, Alert, CircularProgress } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
-import PrintIcon from '@mui/icons-material/Print'
 import { login } from '../api/auth'
 import { useAuth } from '../components/AuthProvider'
 import AdminOnboarding from './AdminOnboarding'
@@ -99,7 +98,7 @@ export default function LoginPage() {
                 color: '#fff',
               }}
             >
-              <PrintIcon sx={{ fontSize: 32 }} />
+              <Box component="img" src="/logo.svg" alt="PrintLab" sx={{ width: 40, height: 40, display: 'block' }} />
             </Box>
             <Typography variant="h5" sx={{ fontWeight: 700, color: '#111827', mb: 1 }}>
               PrintLab
