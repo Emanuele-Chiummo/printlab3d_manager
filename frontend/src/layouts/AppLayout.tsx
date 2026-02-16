@@ -21,6 +21,7 @@ import {
 } from '@mui/material'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import Inventory2Icon from '@mui/icons-material/Inventory2'
+import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing'
 import LocationOnIcon from '@mui/icons-material/LocationOn'
 import PeopleIcon from '@mui/icons-material/People'
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong'
@@ -41,18 +42,17 @@ type NavItem = { label: string; icon: React.ReactNode; to: string }
 const items: NavItem[] = [
   { label: 'Dashboard', icon: <DashboardIcon />, to: '/' },
   { label: 'Filamenti', icon: <Inventory2Icon />, to: '/filamenti' },
+  { label: 'Stampanti', icon: <PrecisionManufacturingIcon />, to: '/stampanti' },
   { label: 'Ubicazioni', icon: <LocationOnIcon />, to: '/ubicazioni' },
   { label: 'Clienti', icon: <PeopleIcon />, to: '/clienti' },
   { label: 'Preventivi', icon: <ReceiptLongIcon />, to: '/preventivi' },
   { label: 'Job', icon: <PrintIcon />, to: '/job' },
   { label: 'Costi', icon: <EuroIcon />, to: '/costi' },
-  { label: 'Impostazioni', icon: <SettingsIcon />, to: '/impostazioni' },
 ]
 
 const pageMeta: Record<string, { title: string; subtitle: string }> = {
   '/': { title: 'Panoramica generale', subtitle: 'Controlla performance e produzione' },
-  '/filamenti': { title: 'Magazzino filamenti', subtitle: 'Gestisci materiali e scorte' },
-  '/ubicazioni': { title: 'Ubicazioni', subtitle: 'Traccia shelf e posizioni' },
+  '/filamenti': { title: 'Magazzino filamenti', subtitle: 'Gestisci materiali e scorte' },  '/stampanti': { title: 'Stampanti 3D', subtitle: 'Gestisci il parco macchine' },  '/ubicazioni': { title: 'Ubicazioni', subtitle: 'Traccia shelf e posizioni' },
   '/clienti': { title: 'Clienti', subtitle: 'Gestisci relazioni e attività' },
   '/preventivi': { title: 'Preventivi', subtitle: 'Crea e monitora le offerte' },
   '/job': { title: 'Job di stampa', subtitle: 'Supervisiona produzione e costi' },
@@ -99,6 +99,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     if (user?.role === 'ADMIN') {
       nav.push({ label: 'Utenti', icon: <SupervisorAccountIcon />, to: '/utenti' })
     }
+    nav.push({ label: 'Impostazioni', icon: <SettingsIcon />, to: '/impostazioni' })
     return nav
   }, [user])
 

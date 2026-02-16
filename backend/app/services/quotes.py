@@ -4,12 +4,28 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.models.inventory import Filament
+from app.models.printer import Printer
 from app.models.quote import QuoteLine, QuoteVersion
 
 
 def recalc_quote_version(db: Session, qv: QuoteVersion) -> None:
     # Recupera parametri da QuoteVersion
-    # (i parametri sono già nella versione, non più dalla stampante rimossa)
+    # Se è selezionata una stampante, usa i suoi parametri
+    if qv.printer_id:
+        printer = db.get(Printer, qv.printer_id)
+        if printer:
+            # Usa il costo totale macchina dalla stampante (deprezzamento + manutenzione)
+            costo_macchina_eur_h = Decimal(str(printer.totale_macchina_eur_h))
+            # Usa anche la potenza della stampante
+            potenza_w = Decimal(str(printer.potenza_w))
+        else:
+            # Fallback ai valori nella versione se stampante non trovata
+            costo_macchina_eur_h = Decimal(str(qv.costo_macchina_eur_h or 0.08))
+            potenza_w = Decimal(str(qv.potenza_w or 200))
+    else:
+        # Usa i valori nella versione del preventivo
+        costo_macchina_eur_h = Decimal(str(qv.costo_macchina_eur_h or 0.08))
+        potenza_w = Decimal(str(qv.potenza_w or 200))
     
     # Somma totali per riga prima dello sconto
     tot_imponibile = Decimal("0")
@@ -42,7 +58,6 @@ def recalc_quote_version(db: Session, qv: QuoteVersion) -> None:
 
         # 2. COSTO ENERGIA = (potenza_w/1000) * print_hours * costo_energia_kwh * qty (SOLO PRIMA RIGA)
         if is_first:
-            potenza_w = Decimal(str(qv.potenza_w or 200))
             costo_energia_kwh = Decimal(str(qv.costo_energia_kwh or 0.15))
             energia_kwh = (potenza_w / Decimal("1000")) * print_hours
             energia_cost = energia_kwh * costo_energia_kwh
@@ -53,7 +68,6 @@ def recalc_quote_version(db: Session, qv: QuoteVersion) -> None:
 
         # 3. COSTO MACCHINA/USURA = print_hours * costo_macchina_eur_h * qty (SOLO PRIMA RIGA)
         if is_first:
-            costo_macchina_eur_h = Decimal(str(qv.costo_macchina_eur_h or 0.08))
             costo_macchina = print_hours * costo_macchina_eur_h
             line.costo_macchina_eur = float((costo_macchina * qty).quantize(Decimal("0.01")))
         else:

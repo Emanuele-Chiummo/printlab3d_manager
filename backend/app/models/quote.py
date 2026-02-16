@@ -32,7 +32,9 @@ class QuoteVersion(Base, TimestampMixin, AuditUserMixin):
     quote_id: Mapped[int] = mapped_column(ForeignKey("quotes.id"))
     version_number: Mapped[int] = mapped_column(Integer, default=1)
     status: Mapped[QuoteStatus] = mapped_column(Enum(QuoteStatus), default=QuoteStatus.BOZZA)
-
+    
+    # Stampante utilizzata per il preventivo
+    printer_id: Mapped[int | None] = mapped_column(ForeignKey("printers.id"), nullable=True)
 
 
     # Parametri economici
@@ -56,6 +58,7 @@ class QuoteVersion(Base, TimestampMixin, AuditUserMixin):
 
     quote = relationship("Quote", back_populates="versions")
     righe = relationship("QuoteLine", back_populates="quote_version", cascade="all, delete-orphan")
+    printer = relationship("Printer")
 
 
 class QuoteLine(Base, TimestampMixin, AuditUserMixin):
@@ -72,7 +75,7 @@ class QuoteLine(Base, TimestampMixin, AuditUserMixin):
     costo_materiale_eur: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
 
     tempo_stimato_min: Mapped[int] = mapped_column(Integer, default=0)
-    ore_manodopera_min: Mapped[int] = mapped_column(Integer, default=0)
+    ore_manodopera_min: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
     costo_macchina_eur: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
     costo_manodopera_eur: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
     costo_energia_eur: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)

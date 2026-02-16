@@ -43,6 +43,7 @@ export default function PreventiviPage() {
   const [versions, setVersions] = React.useState<QuoteVersion[]>([])
   const [customers, setCustomers] = React.useState<Customer[]>([])
   const [filaments, setFilaments] = React.useState<Filament[]>([])
+  const [printers, setPrinters] = React.useState<any[]>([])
   const [anchorEl, setAnchorEl] = React.useState<{ [key: number]: HTMLElement | null }>({})
   const [detailVersion, setDetailVersion] = React.useState<QuoteVersion | null>(null)
 
@@ -54,12 +55,14 @@ export default function PreventiviPage() {
     setCustomers(r.data)
   })
   const loadFilaments = () => api.get('/api/v1/filaments/').then((r) => setFilaments(r.data))
+  const loadPrinters = () => api.get('/api/v1/printers').then((r) => setPrinters(r.data))
   const loadVersions = (qid: number) => api.get(`/api/v1/quotes/${qid}/versions`).then((r) => setVersions(r.data))
 
   React.useEffect(() => {
     void loadQuotes()
     void loadCustomers()
     void loadFilaments()
+    void loadPrinters()
   }, [])
 
   React.useEffect(() => {
@@ -126,6 +129,7 @@ export default function PreventiviPage() {
     import('../api/settings').then(({ getPreventivoSettings }) => {
       getPreventivoSettings().then((s) => {
         setParams({
+          printer_id: null,
           costo_macchina_eur_h: 0.08,
           costo_manodopera_eur_h: 0.0,
           potenza_w: 200.0,
@@ -146,8 +150,20 @@ export default function PreventiviPage() {
 
   const createVersion = async () => {
     if (!selected || !params) return
-    await api.post(`/api/v1/quotes/${selected.id}/versions`, {
-      ...params,
+    const payload = {
+      printer_id: params.printer_id || null,
+      costo_macchina_eur_h: Number(params.costo_macchina_eur_h),
+      costo_manodopera_eur_h: Number(params.costo_manodopera_eur_h),
+      potenza_w: Number(params.potenza_w),
+      costo_energia_kwh: Number(params.costo_energia_kwh),
+      consumabili_fissi_eur: Number(params.consumabili_fissi_eur),
+      overhead_pct: Number(params.overhead_pct),
+      rischio_pct: Number(params.rischio_pct),
+      margine_pct: Number(params.margine_pct),
+      sconto_eur: Number(params.sconto_eur),
+      iva_pct: Number(params.iva_pct),
+      applica_iva: params.applica_iva,
+      prezzo_unitario_vendita: params.prezzo_unitario_vendita ? Number(params.prezzo_unitario_vendita) : null,
       righe: lines.map(line => ({
         descrizione: line.descrizione,
         filament_id: line.filament_id ? Number(line.filament_id) : null,
@@ -156,18 +172,23 @@ export default function PreventiviPage() {
         tempo_stimato_min: Number(line.tempo_stimato_min),
         ore_manodopera_min: Number(line.ore_manodopera_min),
       })),
-    })
-    setOpenV(false)
-    // Reset righe
-    setLines([{
-      descrizione: 'Stampa 3D',
-      filament_id: '',
-      quantita: 1,
-      peso_materiale_g: 0,
-      tempo_stimato_min: 60,
-      ore_manodopera_min: 0,
-    }])
-    await loadVersions(selected.id)
+    }
+    try {
+      await api.post(`/api/v1/quotes/${selected.id}/versions`, payload)
+      setOpenV(false)
+      // Reset righe
+      setLines([{
+        descrizione: 'Stampa 3D',
+        filament_id: '',
+        quantita: 1,
+        peso_materiale_g: 0,
+        tempo_stimato_min: 60,
+        ore_manodopera_min: 0,
+      }])
+      await loadVersions(selected.id)
+    } catch (error: any) {
+      alert('Errore nella creazione della versione: ' + (error.response?.data?.detail || error.message))
+    }
   }
 
   const statusColor = (s: string) => {
@@ -449,18 +470,58 @@ export default function PreventiviPage() {
         <DialogTitle>Nuova versione</DialogTitle>
         <DialogContent>
           <Typography variant="subtitle2" sx={{ mt: 1 }}>
-            Parametri
+            Stampante
           </Typography>
           {loadingParams || !params ? (
             <Typography color="text.secondary">Caricamento parametri...</Typography>
           ) : (
-            <Box sx={{ display: 'grid', gap: 2, mt: 1, gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' } }}>
-              {Object.entries(params)
-                .filter(([k]) => k !== 'prezzo_unitario_vendita' && k !== 'applica_iva')
-                .map(([k, v]) => (
-                  <TextField key={k} label={k} type="number" value={v} onChange={(e) => setParams((s: any) => ({ ...s, [k]: Number(e.target.value) }))} />
-                ))}
-            </Box>
+            <>
+              <Box sx={{ mt: 1, mb: 2 }}>
+                <TextField
+                  select
+                  label="Seleziona stampante"
+                  value={params.printer_id || ''}
+                  onChange={(e) => {
+                    const printerId = e.target.value ? Number(e.target.value) : null
+                    const printer = printers.find(p => p.id === printerId)
+                    setParams((s: any) => ({
+                      ...s,
+                      printer_id: printerId,
+                      costo_macchina_eur_h: printer ? printer.totale_macchina_eur_h : 0.08,
+                      potenza_w: printer ? printer.potenza_w : 200.0,
+                    }))
+                  }}
+                  fullWidth
+                  helperText={params.printer_id ? `Costo macchina: €${params.costo_macchina_eur_h.toFixed(4)}/h | Potenza: ${params.potenza_w}W` : 'Seleziona una stampante per calcolare automaticamente i costi'}
+                >
+                  <MenuItem value="">(Nessuna - valori manuali)</MenuItem>
+                  {printers.map((p) => (
+                    <MenuItem key={p.id} value={p.id}>
+                      {p.nome} - {p.modello} (€{p.totale_macchina_eur_h.toFixed(4)}/h)
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Box>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle2" sx={{ mt: 2 }}>
+                Parametri
+              </Typography>
+              <Box sx={{ display: 'grid', gap: 2, mt: 1, gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' } }}>
+                {Object.entries(params)
+                  .filter(([k]) => k !== 'prezzo_unitario_vendita' && k !== 'applica_iva' && k !== 'printer_id')
+                  .map(([k, v]) => (
+                    <TextField 
+                      key={k} 
+                      label={k} 
+                      type="number" 
+                      value={v} 
+                      onChange={(e) => setParams((s: any) => ({ ...s, [k]: Number(e.target.value) }))} 
+                      disabled={params.printer_id && (k === 'costo_macchina_eur_h' || k === 'potenza_w')}
+                      helperText={params.printer_id && (k === 'costo_macchina_eur_h' || k === 'potenza_w') ? 'Valore dalla stampante' : ''}
+                    />
+                  ))}
+              </Box>
+            </>
           )}
           <Divider sx={{ my: 2 }} />
           <Stack direction="row" spacing={2} alignItems="center">

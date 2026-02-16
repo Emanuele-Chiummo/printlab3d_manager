@@ -25,7 +25,7 @@ class QuoteLineCreate(BaseModel):
     quantita: int = 1
     peso_materiale_g: float = 0.0
     tempo_stimato_min: int = 0
-    ore_manodopera_min: int = 0
+    ore_manodopera_min: float = 0.0
 
 
 class QuoteLineOut(BaseModel):
@@ -36,7 +36,7 @@ class QuoteLineOut(BaseModel):
     peso_materiale_g: float
     costo_materiale_eur: float
     tempo_stimato_min: int
-    ore_manodopera_min: int
+    ore_manodopera_min: float
     costo_macchina_eur: float
     costo_manodopera_eur: float
     costo_energia_eur: float
@@ -48,6 +48,7 @@ class QuoteLineOut(BaseModel):
 
 
 class QuoteVersionCreate(BaseModel):
+    printer_id: int | None = None
     costo_macchina_eur_h: float = 0.08
     costo_manodopera_eur_h: float = 0.0
     potenza_w: float = 200.0
@@ -65,6 +66,7 @@ class QuoteVersionCreate(BaseModel):
 
 class QuoteVersionUpdate(BaseModel):
     status: QuoteStatus | None = None
+    printer_id: int | None = None
     costo_macchina_eur_h: float | None = None
     costo_manodopera_eur_h: float | None = None
     potenza_w: float | None = None
@@ -85,6 +87,7 @@ class QuoteVersionOut(BaseModel):
     quote_id: int
     version_number: int
     status: QuoteStatus
+    printer_id: int | None
     costo_macchina_eur_h: float
     costo_manodopera_eur_h: float
     potenza_w: float

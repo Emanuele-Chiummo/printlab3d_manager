@@ -6,6 +6,7 @@ import { AppLayout } from './layouts/AppLayout'
 import LoginPage from './pages/Login'
 import DashboardPage from './pages/Dashboard'
 import FilamentiPage from './pages/Filamenti'
+import StampantiPage from './pages/Stampanti'
 import UbicazioniPage from './pages/Ubicazioni'
 import ClientiPage from './pages/Clienti'
 import PreventiviPage from './pages/Preventivi'
@@ -29,6 +30,7 @@ export default function App() {
 
       <Route path="/" element={<Protected><DashboardPage /></Protected>} />
       <Route path="/filamenti" element={<Protected><FilamentiPage /></Protected>} />
+      <Route path="/stampanti" element={<Protected><StampantiPage /></Protected>} />
       <Route path="/ubicazioni" element={<Protected><UbicazioniPage /></Protected>} />
       <Route path="/clienti" element={<Protected><ClientiPage /></Protected>} />
       <Route path="/preventivi" element={<Protected><PreventiviPage /></Protected>} />

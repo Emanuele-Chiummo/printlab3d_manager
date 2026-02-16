@@ -74,6 +74,7 @@ def create_version(quote_id: int, payload: QuoteVersionCreate, db: Session = Dep
     qv = QuoteVersion(
         quote_id=quote_id,
         version_number=next_v,
+        printer_id=payload.printer_id,
         costo_macchina_eur_h=payload.costo_macchina_eur_h,
         costo_manodopera_eur_h=payload.costo_manodopera_eur_h,
         potenza_w=payload.potenza_w,
