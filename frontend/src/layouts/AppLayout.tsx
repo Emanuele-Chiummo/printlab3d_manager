@@ -194,11 +194,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           position: 'relative',
         }}
       >
-        <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', mb: 0.5 }}>
+        <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mb: 0.5 }}>
           PrintLab 3D Manager
         </Typography>
-        <Typography variant="caption" sx={{ color: '#cbd5e1', fontWeight: 600 }}>
-          v{__APP_VERSION__}
+        <Typography variant="caption" sx={{ color: '#0f172a', fontWeight: 600 }}>
+          {__APP_VERSION__}
         </Typography>
       </Box>
     </Box>
