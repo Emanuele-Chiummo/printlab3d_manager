@@ -104,7 +104,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }, [user])
 
   const drawer = (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', zIndex: 0, overflow: 'hidden' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', zIndex: 0, overflow: 'hidden', minHeight: 0 }}>
       <Box
         sx={{
           position: 'absolute',
@@ -143,7 +143,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           Navigazione
         </Typography>
       </Box>
-      <List sx={{ flex: 1 }}>
+      <List sx={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
         {navItems.map((item) => {
           const selected = location.pathname === item.to
           return (
@@ -286,7 +286,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             border: 'none',
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
             pt: { xs: '56px', md: 0 },
-            height: { xs: '100vh', md: 'auto' },
+            height: '100vh',
           },
         }}
       >

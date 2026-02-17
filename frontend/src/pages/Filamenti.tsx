@@ -65,7 +65,6 @@ type FilamentOrderBy =
   | 'marca'
   | 'colore'
   | 'ubicazione'
-  | 'data_acquisto'
   | 'peso_residuo_g'
   | 'soglia_min_g'
   | 'costo_spool_eur'
@@ -172,8 +171,6 @@ export default function FilamentiPage() {
           return r.colore ?? ''
         case 'ubicazione':
           return r.ubicazione_id ? locationNameById.get(r.ubicazione_id) ?? '' : ''
-        case 'data_acquisto':
-          return r.data_acquisto ? new Date(r.data_acquisto).getTime() : null
         case 'peso_residuo_g':
           return r.peso_residuo_g ?? 0
         case 'soglia_min_g':
@@ -311,10 +308,11 @@ export default function FilamentiPage() {
             </Typography>
           </Box>
         </Stack>
-        <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: 'auto', overflowY: 'auto' }}>
-          <Table size="small" stickyHeader>
+        <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: 'hidden', overflowY: 'auto' }}>
+          <Table size="small" stickyHeader sx={{ tableLayout: 'fixed', width: '100%' }}>
             <TableHead>
               <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
+                <TableCell sx={{ fontWeight: 600, width: 90 }}>ID</TableCell>
                 <TableCell sx={{ fontWeight: 600 }} sortDirection={orderBy === 'materiale' ? order : false}>
                   <TableSortLabel active={orderBy === 'materiale'} direction={orderBy === 'materiale' ? order : 'asc'} onClick={() => handleRequestSort('materiale')}>
                     Materiale
@@ -340,19 +338,9 @@ export default function FilamentiPage() {
                     Ubicazione
                   </TableSortLabel>
                 </TableCell>
-                <TableCell sx={{ fontWeight: 600, display: { xs: 'none', lg: 'table-cell' } }} sortDirection={orderBy === 'data_acquisto' ? order : false}>
-                  <TableSortLabel active={orderBy === 'data_acquisto'} direction={orderBy === 'data_acquisto' ? order : 'asc'} onClick={() => handleRequestSort('data_acquisto')}>
-                    Data acquisto
-                  </TableSortLabel>
-                </TableCell>
                 <TableCell align="right" sx={{ fontWeight: 600 }} sortDirection={orderBy === 'peso_residuo_g' ? order : false}>
                   <TableSortLabel active={orderBy === 'peso_residuo_g'} direction={orderBy === 'peso_residuo_g' ? order : 'asc'} onClick={() => handleRequestSort('peso_residuo_g')}>
                     Residuo (g)
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell align="right" sx={{ fontWeight: 600, display: { xs: 'none', sm: 'table-cell' } }} sortDirection={orderBy === 'soglia_min_g' ? order : false}>
-                  <TableSortLabel active={orderBy === 'soglia_min_g'} direction={orderBy === 'soglia_min_g' ? order : 'asc'} onClick={() => handleRequestSort('soglia_min_g')}>
-                    Soglia (g)
                   </TableSortLabel>
                 </TableCell>
                 <TableCell align="right" sx={{ fontWeight: 600, display: { xs: 'none', lg: 'table-cell' } }} sortDirection={orderBy === 'costo_spool_eur' ? order : false}>
@@ -360,12 +348,7 @@ export default function FilamentiPage() {
                     Costo
                   </TableSortLabel>
                 </TableCell>
-                <TableCell align="right" sx={{ fontWeight: 600, display: { xs: 'none', lg: 'table-cell' } }} sortDirection={orderBy === 'eur_g' ? order : false}>
-                  <TableSortLabel active={orderBy === 'eur_g'} direction={orderBy === 'eur_g' ? order : 'asc'} onClick={() => handleRequestSort('eur_g')}>
-                    €/g
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600 }} sortDirection={orderBy === 'stato' ? order : false}>
+                <TableCell sx={{ fontWeight: 600, minWidth: 180 }} sortDirection={orderBy === 'stato' ? order : false}>
                   <TableSortLabel active={orderBy === 'stato'} direction={orderBy === 'stato' ? order : 'asc'} onClick={() => handleRequestSort('stato')}>
                     Stato
                   </TableSortLabel>
@@ -377,8 +360,19 @@ export default function FilamentiPage() {
           {visibleRows.map((r) => {
             const low = r.peso_residuo_g <= r.soglia_min_g
             const isFinito = r.stato === 'FINITO'
+            const idLabel = `${(r.materiale || 'FIL').toUpperCase()}-${String(r.id).padStart(3, '0')}`
             return (
               <TableRow key={r.id} hover>
+                <TableCell>
+                  <Button
+                    size="small"
+                    onClick={() => canWrite && onEdit(r)}
+                    disabled={!canWrite}
+                    sx={{ minWidth: 0, px: 0, textTransform: 'none', fontWeight: 600 }}
+                  >
+                    {idLabel}
+                  </Button>
+                </TableCell>
                 <TableCell>{r.materiale}</TableCell>
                 <TableCell>{r.tipo}</TableCell>
                 <TableCell>{r.marca}</TableCell>
@@ -408,27 +402,26 @@ export default function FilamentiPage() {
                     <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem', fontStyle: 'italic' }}>—</Typography>
                   )}
                 </TableCell>
-                <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' } }}>
-                  {r.data_acquisto ? (
-                    <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
-                      {new Date(r.data_acquisto).toLocaleDateString('it-IT')}
-                    </Typography>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem', fontStyle: 'italic' }}>—</Typography>
-                  )}
-                </TableCell>
                 <TableCell align="right">{r.peso_residuo_g}</TableCell>
-                <TableCell align="right" sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{r.soglia_min_g}</TableCell>
                 <TableCell align="right" sx={{ display: { xs: 'none', lg: 'table-cell' } }}>€ {r.costo_spool_eur.toFixed(2)}</TableCell>
-                <TableCell align="right" sx={{ display: { xs: 'none', lg: 'table-cell' } }}>
-                  {r.peso_nominale_g > 0 ? `€ ${(r.costo_spool_eur / r.peso_nominale_g).toFixed(3)}` : '—'}
-                </TableCell>
                 <TableCell>
-                  <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ alignItems: 'center' }}>
+                  <Stack
+                    direction="row"
+                    spacing={0.75}
+                    useFlexGap
+                    flexWrap="nowrap"
+                    sx={{ alignItems: 'center', whiteSpace: 'nowrap' }}
+                  >
                     <Chip
                       label={statoOptions.find(s => s.value === r.stato)?.label || r.stato}
                       color={(statoOptions.find(s => s.value === r.stato)?.color as any) || 'default'}
                       size="small"
+                      sx={{
+                        height: 'auto',
+                        maxWidth: 'none',
+                        py: 0.25,
+                        '& .MuiChip-label': { whiteSpace: 'nowrap' },
+                      }}
                     />
                     {low && !isFinito && <Chip label="Stock basso" color="warning" size="small" />}
                   </Stack>
@@ -507,6 +500,15 @@ export default function FilamentiPage() {
             <TextField label="Diametro (mm)" type="number" value={form.diametro_mm ?? 1.75} onChange={(e) => setForm((s) => ({ ...s, diametro_mm: Number(e.target.value) }))} />
             <TextField label="Peso nominale (g)" type="number" value={form.peso_nominale_g ?? 1000} onChange={(e) => setForm((s) => ({ ...s, peso_nominale_g: Number(e.target.value) }))} />
             <TextField label="Costo bobina (€)" type="number" value={form.costo_spool_eur ?? 0} onChange={(e) => setForm((s) => ({ ...s, costo_spool_eur: Number(e.target.value) }))} />
+            <TextField
+              label="€/g"
+              value={
+                form.peso_nominale_g && form.peso_nominale_g > 0
+                  ? (Number(form.costo_spool_eur ?? 0) / Number(form.peso_nominale_g)).toFixed(3)
+                  : '—'
+              }
+              InputProps={{ readOnly: true }}
+            />
             <TextField label="Peso residuo (g)" type="number" value={form.peso_residuo_g ?? 0} onChange={(e) => setForm((s) => ({ ...s, peso_residuo_g: Number(e.target.value) }))} />
             <TextField label="Soglia minima (g)" type="number" value={form.soglia_min_g ?? 100} onChange={(e) => setForm((s) => ({ ...s, soglia_min_g: Number(e.target.value) }))} />
             <FormControl fullWidth>
