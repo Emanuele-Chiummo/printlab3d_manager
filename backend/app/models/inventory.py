@@ -15,8 +15,9 @@ class MovementType(str, enum.Enum):
 
 
 class FilamentStatus(str, enum.Enum):
+    nuovo = "NUOVO"
     disponibile = "DISPONIBILE"
-    in_uso = "IN_USO"
+    in_uso_ams = "IN_USO_AMS"
     finito = "FINITO"
     secco = "SECCO"
     da_asciugare = "DA_ASCIUGARE"

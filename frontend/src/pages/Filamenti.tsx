@@ -2,10 +2,12 @@ import React from 'react'
 import {
   Box,
   Button,
+  Collapse,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  Grid,
   IconButton,
   Stack,
   Menu,
@@ -29,6 +31,11 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
+import FilterListIcon from '@mui/icons-material/FilterList'
+import InventoryIcon from '@mui/icons-material/Inventory'
+import ScaleIcon from '@mui/icons-material/Scale'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import DeviceHubIcon from '@mui/icons-material/DeviceHub'
 import api from '../api/client'
 import { Filament } from '../api/types'
 import { useAuth } from '../components/AuthProvider'
@@ -51,8 +58,9 @@ const empty: Partial<Filament> = {
 }
 
 const statoOptions = [
+  { value: 'NUOVO', label: 'Nuovo', color: 'success' },
   { value: 'DISPONIBILE', label: 'Disponibile', color: 'success' },
-  { value: 'IN_USO', label: 'In uso', color: 'info' },
+  { value: 'IN_USO_AMS', label: 'In uso (AMS)', color: 'info' },
   { value: 'FINITO', label: 'Finito', color: 'error' },
   { value: 'SECCO', label: 'Secco', color: 'warning' },
   { value: 'DA_ASCIUGARE', label: 'Da asciugare', color: 'default' },
@@ -103,6 +111,7 @@ export default function FilamentiPage() {
   const [anchorEl, setAnchorEl] = React.useState<{ [key: number]: HTMLElement | null }>({})
   const [order, setOrder] = React.useState<Order>('asc')
   const [orderBy, setOrderBy] = React.useState<FilamentOrderBy | ''>('id')
+  const [showFilters, setShowFilters] = React.useState(false)
 
   const load = () => api.get('/api/v1/filaments/').then((r) => setRows(r.data))
   const loadLocations = () => api.get('/api/v1/locations/').then((r) => setLocations(r.data))
@@ -218,6 +227,29 @@ export default function FilamentiPage() {
     })
   }, [rows, searchText, filterStato, filterUbicazione])
 
+  const statistics = React.useMemo(() => {
+    const nonFinished = rows.filter(r => r.stato !== 'FINITO')
+    const disponibili = rows.filter(r => r.stato === 'DISPONIBILE' || r.stato === 'NUOVO')
+    const inUsoAMS = rows.filter(r => r.stato === 'IN_USO_AMS')
+    
+    const totalCount = nonFinished.length
+    const disponibiliCount = disponibili.length
+    const inUsoAMSCount = inUsoAMS.length
+    
+    const totalKg = (nonFinished.reduce((sum, r) => sum + (r.peso_residuo_g || 0), 0) / 1000).toFixed(2)
+    const disponibiliKg = (disponibili.reduce((sum, r) => sum + (r.peso_residuo_g || 0), 0) / 1000).toFixed(2)
+    const inUsoAMSKg = (inUsoAMS.reduce((sum, r) => sum + (r.peso_residuo_g || 0), 0) / 1000).toFixed(2)
+    
+    return {
+      totalCount,
+      totalKg,
+      disponibiliCount,
+      disponibiliKg,
+      inUsoAMSCount,
+      inUsoAMSKg,
+    }
+  }, [rows])
+
   const visibleRows = React.useMemo(() => {
     if (!orderBy) return filteredRows
     const comparator = (a: Filament, b: Filament) => {
@@ -257,51 +289,71 @@ export default function FilamentiPage() {
         )}
       </Box>
 
-      <Stack direction="column" spacing={1.5} sx={{ mb: 2 }}>
-        <TextField 
-          size="small" 
-          placeholder="Cerca materiale, tipo, marca, colore..." 
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          fullWidth
-        />
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-          <FormControl size="small" fullWidth sx={{ sm: { maxWidth: 200 } }}>
-            <InputLabel>Stato</InputLabel>
-            <Select
-              value={filterStato}
-              label="Stato"
-              onChange={(e) => setFilterStato(e.target.value)}
-            >
-              <MenuItem value=""><em>Tutti</em></MenuItem>
-              {statoOptions.map(opt => (
-                <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl size="small" fullWidth sx={{ sm: { maxWidth: 200 } }}>
-            <InputLabel>Ubicazione</InputLabel>
-            <Select
-              value={filterUbicazione}
-              label="Ubicazione"
-              onChange={(e) => setFilterUbicazione(e.target.value)}
-            >
-              <MenuItem value=""><em>Tutte</em></MenuItem>
-              {locations.map(loc => (
-                <MenuItem key={loc.id} value={String(loc.id)}>{loc.nome}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          {(searchText || filterStato || filterUbicazione) && (
-            <Button size="small" onClick={() => { setSearchText(''); setFilterStato(''); setFilterUbicazione('') }} sx={{ width: { xs: '100%', sm: 'auto' } }}>
-              Reset filtri
-            </Button>
-          )}
-        </Stack>
-      </Stack>
+      <Grid container spacing={1} sx={{ mb: 1.5 }}>
+        <Grid item xs={6} sm={6} md={3}>
+          <Paper sx={{ p: 1, bgcolor: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.12)', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)', transition: 'all 0.2s ease', '&:hover': { boxShadow: '0 2px 6px rgba(0, 0, 0, 0.12)' } }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1 }}>
+              <InventoryIcon sx={{ fontSize: '1.1rem', color: 'text.secondary' }} />
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, fontSize: '0.7rem' }}>
+                Filamenti non finiti
+              </Typography>
+            </Box>
+            <Box sx={{ borderTop: '1px solid rgba(0, 0, 0, 0.08)', pt: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.25rem', color: 'primary.main' }}>
+                {statistics.totalCount}
+              </Typography>
+            </Box>
+          </Paper>
+        </Grid>
+        <Grid item xs={6} sm={6} md={3}>
+          <Paper sx={{ p: 1, bgcolor: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.12)', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)', transition: 'all 0.2s ease', '&:hover': { boxShadow: '0 2px 6px rgba(0, 0, 0, 0.12)' } }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1 }}>
+              <ScaleIcon sx={{ fontSize: '1.1rem', color: 'text.secondary' }} />
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, fontSize: '0.7rem' }}>
+                Kg rimanenti
+              </Typography>
+            </Box>
+            <Box sx={{ borderTop: '1px solid rgba(0, 0, 0, 0.08)', pt: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.25rem', color: 'primary.main' }}>
+                {statistics.totalKg} kg
+              </Typography>
+            </Box>
+          </Paper>
+        </Grid>
+        <Grid item xs={6} sm={6} md={3}>
+          <Paper sx={{ p: 1, bgcolor: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.12)', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)', transition: 'all 0.2s ease', '&:hover': { boxShadow: '0 2px 6px rgba(0, 0, 0, 0.12)' } }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1 }}>
+              <CheckCircleIcon sx={{ fontSize: '1.1rem', color: 'text.secondary' }} />
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, fontSize: '0.7rem' }}>
+                Disponibili
+              </Typography>
+            </Box>
+            <Box sx={{ borderTop: '1px solid rgba(0, 0, 0, 0.08)', pt: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.25rem', color: 'primary.main' }}>
+                {statistics.disponibiliCount}
+              </Typography>
+            </Box>
+          </Paper>
+        </Grid>
+        <Grid item xs={6} sm={6} md={3}>
+          <Paper sx={{ p: 1, bgcolor: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.12)', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)', transition: 'all 0.2s ease', '&:hover': { boxShadow: '0 2px 6px rgba(0, 0, 0, 0.12)' } }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1 }}>
+              <DeviceHubIcon sx={{ fontSize: '1.1rem', color: 'text.secondary' }} />
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, fontSize: '0.7rem' }}>
+                In uso (AMS)
+              </Typography>
+            </Box>
+            <Box sx={{ borderTop: '1px solid rgba(0, 0, 0, 0.08)', pt: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.25rem', color: 'primary.main' }}>
+                {statistics.inUsoAMSCount}
+              </Typography>
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
 
       <Paper sx={{ p: { xs: 1.5, sm: 2, md: 2.5 } }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2, gap: 1 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: showFilters ? 2 : 1.5, gap: 1 }}>
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: '0.95rem', md: '1rem' } }}>
               Inventario filamenti
@@ -310,7 +362,60 @@ export default function FilamentiPage() {
               {filteredRows.length} filamenti visualizzati
             </Typography>
           </Box>
+          <IconButton
+            onClick={() => setShowFilters(!showFilters)}
+            sx={{ flexShrink: 0 }}
+            title="Mostra/nascondi filtri"
+          >
+            <FilterListIcon />
+          </IconButton>
         </Stack>
+
+        <Collapse in={showFilters} timeout="auto" unmountOnExit>
+          <Stack direction="column" spacing={1.5} sx={{ mb: 2, pb: 1.5, borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+            <TextField 
+              size="small" 
+              placeholder="Cerca materiale, tipo, marca, colore..." 
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              fullWidth
+            />
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+              <FormControl size="small" fullWidth sx={{ sm: { maxWidth: 200 } }}>
+                <InputLabel>Stato</InputLabel>
+                <Select
+                  value={filterStato}
+                  label="Stato"
+                  onChange={(e) => setFilterStato(e.target.value)}
+                >
+                  <MenuItem value=""><em>Tutti</em></MenuItem>
+                  {statoOptions.map(opt => (
+                    <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl size="small" fullWidth sx={{ sm: { maxWidth: 200 } }}>
+                <InputLabel>Ubicazione</InputLabel>
+                <Select
+                  value={filterUbicazione}
+                  label="Ubicazione"
+                  onChange={(e) => setFilterUbicazione(e.target.value)}
+                >
+                  <MenuItem value=""><em>Tutte</em></MenuItem>
+                  {locations.map(loc => (
+                    <MenuItem key={loc.id} value={String(loc.id)}>{loc.nome}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {(searchText || filterStato || filterUbicazione) && (
+                <Button size="small" onClick={() => { setSearchText(''); setFilterStato(''); setFilterUbicazione('') }} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+                  Reset filtri
+                </Button>
+              )}
+            </Stack>
+          </Stack>
+        </Collapse>
+
         <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: { xs: 'auto', md: 'hidden' }, overflowY: 'auto' }}>
           <Table size="small" stickyHeader sx={{ tableLayout: { xs: 'auto', md: 'fixed' }, width: '100%' }}>
             <TableHead>
