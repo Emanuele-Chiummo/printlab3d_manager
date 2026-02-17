@@ -60,6 +60,7 @@ const statoOptions = [
 
 type Order = 'asc' | 'desc'
 type FilamentOrderBy =
+  | 'id'
   | 'materiale'
   | 'tipo'
   | 'marca'
@@ -101,7 +102,7 @@ export default function FilamentiPage() {
   const [filterUbicazione, setFilterUbicazione] = React.useState('')
   const [anchorEl, setAnchorEl] = React.useState<{ [key: number]: HTMLElement | null }>({})
   const [order, setOrder] = React.useState<Order>('asc')
-  const [orderBy, setOrderBy] = React.useState<FilamentOrderBy | ''>('colore')
+  const [orderBy, setOrderBy] = React.useState<FilamentOrderBy | ''>('id')
 
   const load = () => api.get('/api/v1/filaments/').then((r) => setRows(r.data))
   const loadLocations = () => api.get('/api/v1/locations/').then((r) => setLocations(r.data))
@@ -163,6 +164,8 @@ export default function FilamentiPage() {
       switch (key) {
         case 'materiale':
           return r.materiale ?? ''
+        case 'id':
+          return r.id ?? 0
         case 'tipo':
           return r.tipo ?? ''
         case 'marca':
@@ -308,27 +311,31 @@ export default function FilamentiPage() {
             </Typography>
           </Box>
         </Stack>
-        <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: 'hidden', overflowY: 'auto' }}>
-          <Table size="small" stickyHeader sx={{ tableLayout: 'fixed', width: '100%' }}>
+        <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: { xs: 'auto', md: 'hidden' }, overflowY: 'auto' }}>
+          <Table size="small" stickyHeader sx={{ tableLayout: { xs: 'auto', md: 'fixed' }, width: '100%' }}>
             <TableHead>
               <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
-                <TableCell sx={{ fontWeight: 600, width: 90 }}>ID</TableCell>
+                <TableCell sx={{ fontWeight: 600, width: 90 }} sortDirection={orderBy === 'id' ? order : false}>
+                  <TableSortLabel active={orderBy === 'id'} direction={orderBy === 'id' ? order : 'asc'} onClick={() => handleRequestSort('id')}>
+                    ID
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell sx={{ fontWeight: 600 }} sortDirection={orderBy === 'materiale' ? order : false}>
                   <TableSortLabel active={orderBy === 'materiale'} direction={orderBy === 'materiale' ? order : 'asc'} onClick={() => handleRequestSort('materiale')}>
                     Materiale
                   </TableSortLabel>
                 </TableCell>
-                <TableCell sx={{ fontWeight: 600 }} sortDirection={orderBy === 'tipo' ? order : false}>
+                <TableCell sx={{ fontWeight: 600, display: { xs: 'none', sm: 'table-cell' } }} sortDirection={orderBy === 'tipo' ? order : false}>
                   <TableSortLabel active={orderBy === 'tipo'} direction={orderBy === 'tipo' ? order : 'asc'} onClick={() => handleRequestSort('tipo')}>
                     Tipo
                   </TableSortLabel>
                 </TableCell>
-                <TableCell sx={{ fontWeight: 600 }} sortDirection={orderBy === 'marca' ? order : false}>
+                <TableCell sx={{ fontWeight: 600, display: { xs: 'none', sm: 'table-cell' } }} sortDirection={orderBy === 'marca' ? order : false}>
                   <TableSortLabel active={orderBy === 'marca'} direction={orderBy === 'marca' ? order : 'asc'} onClick={() => handleRequestSort('marca')}>
                     Marca
                   </TableSortLabel>
                 </TableCell>
-                <TableCell sx={{ fontWeight: 600 }} sortDirection={orderBy === 'colore' ? order : false}>
+                <TableCell sx={{ fontWeight: 600, display: { xs: 'none', sm: 'table-cell' } }} sortDirection={orderBy === 'colore' ? order : false}>
                   <TableSortLabel active={orderBy === 'colore'} direction={orderBy === 'colore' ? order : 'asc'} onClick={() => handleRequestSort('colore')}>
                     Colore
                   </TableSortLabel>
@@ -348,7 +355,7 @@ export default function FilamentiPage() {
                     Costo
                   </TableSortLabel>
                 </TableCell>
-                <TableCell sx={{ fontWeight: 600, minWidth: 180 }} sortDirection={orderBy === 'stato' ? order : false}>
+                <TableCell sx={{ fontWeight: 600, minWidth: { xs: 110, sm: 180 } }} sortDirection={orderBy === 'stato' ? order : false}>
                   <TableSortLabel active={orderBy === 'stato'} direction={orderBy === 'stato' ? order : 'asc'} onClick={() => handleRequestSort('stato')}>
                     Stato
                   </TableSortLabel>
@@ -374,9 +381,9 @@ export default function FilamentiPage() {
                   </Button>
                 </TableCell>
                 <TableCell>{r.materiale}</TableCell>
-                <TableCell>{r.tipo}</TableCell>
-                <TableCell>{r.marca}</TableCell>
-                <TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{r.tipo}</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{r.marca}</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     {r.colore_hex && (
                       <Box 
