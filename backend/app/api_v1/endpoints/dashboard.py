@@ -2,7 +2,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import and_, func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.api_v1.deps import get_db, get_current_user
 from app.models.costs import CostEntry
@@ -30,10 +30,10 @@ def kpi(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
     job_in_corso = db.query(Job).filter(Job.status == JobStatus.in_corso.value).count()
     stock_basso = db.query(Filament).filter(Filament.peso_residuo_g <= Filament.soglia_min_g).count()
 
-    jobs = db.query(Job).filter(Job.status == JobStatus.completato.value).limit(50).all()
+    jobs = db.query(Job).options(joinedload(Job.quote_version)).filter(Job.status == JobStatus.completato.value).limit(50).all()
     ratios = []
     for j in jobs:
-        qv = db.get(QuoteVersion, j.quote_version_id)
+        qv = j.quote_version
         if qv and float(qv.totale_imponibile_eur) > 0:
             ratios.append(float(j.margine_eur) / float(qv.totale_imponibile_eur) * 100)
     margine_medio = sum(ratios) / len(ratios) if ratios else 0.0

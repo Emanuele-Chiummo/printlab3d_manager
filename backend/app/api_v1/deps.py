@@ -4,6 +4,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
+from jose import JWTError, ExpiredSignatureError
+
 from app.core.security import decode_token
 from app.db.session import SessionLocal
 from app.models.user import User, UserRole
@@ -23,7 +25,7 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
     try:
         payload = decode_token(token)
         user_id = payload.get("sub")
-    except Exception:
+    except (JWTError, ExpiredSignatureError, ValueError, KeyError):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token non valido")
     user = db.get(User, int(user_id)) if user_id else None
     if not user or not user.is_active:

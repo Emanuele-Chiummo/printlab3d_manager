@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, Typography, TextField, Button, Paper, Tabs, Tab, Grid, Divider } from '@mui/material'
 import { getPreventivoSettings, setPreventivoSettings, PreventivoSettings } from '../api/settings'
-import { showSuccess } from '../utils/toast'
+import { showSuccess, showError } from '../utils/toast'
 
 export default function ImpostazioniPage() {
   const [settings, setSettings] = React.useState<PreventivoSettings | null>(null)
@@ -10,10 +10,15 @@ export default function ImpostazioniPage() {
   const [tabIndex, setTabIndex] = React.useState(0)
 
   React.useEffect(() => {
-    getPreventivoSettings().then((s) => {
-      setSettings(s)
-      setLoading(false)
-    })
+    getPreventivoSettings()
+      .then((s) => {
+        setSettings(s)
+        setLoading(false)
+      })
+      .catch(() => {
+        showError('Errore nel caricamento delle impostazioni')
+        setLoading(false)
+      })
   }, [])
 
   const handleChange = (key: keyof PreventivoSettings, value: string | number) => {
@@ -29,9 +34,14 @@ export default function ImpostazioniPage() {
   const handleSave = async () => {
     if (!settings) return
     setSaving(true)
-    await setPreventivoSettings(settings)
-    setSaving(false)
-    showSuccess('Impostazioni salvate!')
+    try {
+      await setPreventivoSettings(settings)
+      showSuccess('Impostazioni salvate!')
+    } catch {
+      showError('Errore nel salvataggio delle impostazioni')
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (loading || !settings) return <Typography sx={{ mt: 4, textAlign: 'center' }}>Caricamento...</Typography>
@@ -50,39 +60,43 @@ export default function ImpostazioniPage() {
           <Typography variant="h6" sx={{ mb: 2 }}>Costi Base</Typography>
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid item xs={12} sm={6}>
-              <TextField 
+              <TextField
                 size="small"
-                label="Costo kWh (€)" 
-                type="number" 
-                value={settings.costo_kwh_eur} 
-                onChange={e => handleChange('costo_kwh_eur', e.target.value)} 
+                label="Costo kWh (€)"
+                type="number"
+                value={settings.costo_kwh_eur}
+                onChange={e => handleChange('costo_kwh_eur', e.target.value)}
+                inputProps={{ min: 0 }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField 
+              <TextField
                 size="small"
-                label="Costo Manodopera (€/h)" 
-                type="number" 
-                value={settings.costo_manodopera_eur_h} 
-                onChange={e => handleChange('costo_manodopera_eur_h', e.target.value)} 
+                label="Costo Manodopera (€/h)"
+                type="number"
+                value={settings.costo_manodopera_eur_h}
+                onChange={e => handleChange('costo_manodopera_eur_h', e.target.value)}
+                inputProps={{ min: 0 }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField 
+              <TextField
                 size="small"
-                label="Consumabili (€ / stampa)" 
-                type="number" 
-                value={settings.consumabili_eur_stampa} 
-                onChange={e => handleChange('consumabili_eur_stampa', e.target.value)} 
+                label="Consumabili (€ / stampa)"
+                type="number"
+                value={settings.consumabili_eur_stampa}
+                onChange={e => handleChange('consumabili_eur_stampa', e.target.value)}
+                inputProps={{ min: 0 }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField 
+              <TextField
                 size="small"
-                label="Soglia filamento basso (g)" 
-                type="number" 
-                value={settings.soglia_filamento_basso_g} 
-                onChange={e => handleChange('soglia_filamento_basso_g', e.target.value)} 
+                label="Soglia filamento basso (g)"
+                type="number"
+                value={settings.soglia_filamento_basso_g}
+                onChange={e => handleChange('soglia_filamento_basso_g', e.target.value)}
+                inputProps={{ min: 0 }}
               />
             </Grid>
           </Grid>
@@ -92,30 +106,33 @@ export default function ImpostazioniPage() {
           <Typography variant="h6" sx={{ mb: 2 }}>Margini e Rischi</Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
-              <TextField 
+              <TextField
                 size="small"
-                label="Margine (%)" 
-                type="number" 
-                value={settings.margine_pct} 
-                onChange={e => handleChange('margine_pct', e.target.value)} 
+                label="Margine (%)"
+                type="number"
+                value={settings.margine_pct}
+                onChange={e => handleChange('margine_pct', e.target.value)}
+                inputProps={{ min: 0 }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField 
+              <TextField
                 size="small"
-                label="Overhead (%)" 
-                type="number" 
-                value={settings.overhead_pct} 
-                onChange={e => handleChange('overhead_pct', e.target.value)} 
+                label="Overhead (%)"
+                type="number"
+                value={settings.overhead_pct}
+                onChange={e => handleChange('overhead_pct', e.target.value)}
+                inputProps={{ min: 0 }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField 
+              <TextField
                 size="small"
-                label="Fattore Rischio (%)" 
-                type="number" 
-                value={settings.fattore_rischio_pct} 
-                onChange={e => handleChange('fattore_rischio_pct', e.target.value)} 
+                label="Fattore Rischio (%)"
+                type="number"
+                value={settings.fattore_rischio_pct}
+                onChange={e => handleChange('fattore_rischio_pct', e.target.value)}
+                inputProps={{ min: 0 }}
               />
             </Grid>
           </Grid>

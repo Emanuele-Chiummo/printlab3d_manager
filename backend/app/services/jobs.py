@@ -1,8 +1,11 @@
+import logging
 from decimal import Decimal
 from datetime import datetime
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session, joinedload
+
+logger = logging.getLogger(__name__)
 
 from app.models.inventory import Filament
 from app.models.job import Job, JobStatus
@@ -145,7 +148,8 @@ def create_job_cost_entries(db: Session, job: Job, user_id: int) -> None:
     try:
         settings = db_settings.get_settings(db)
         costo_kwh = Decimal(str(settings.costo_kwh_eur))
-    except:
+    except Exception as e:
+        logger.warning("Impossibile leggere costo_kwh dalle impostazioni, uso valore del preventivo: %s", e)
         costo_kwh = Decimal(str(qv.costo_energia_kwh))
     
     costo_energia = energia_totale_kwh * costo_kwh

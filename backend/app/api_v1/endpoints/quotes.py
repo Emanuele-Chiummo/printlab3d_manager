@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 
+import re
+
 from app.api_v1.deps import get_db, get_current_user, require_roles
 from app.models.quote import Quote, QuoteLine, QuoteVersion, QuoteStatus
 from app.models.job import Job
@@ -135,7 +137,8 @@ def download_pdf(version_id: int, db: Session = Depends(get_db), _: User = Depen
     _ = quote.customer
     settings = db_settings.get_settings(db)
     pdf_bytes, filename = render_quote_pdf(quote, qv, settings)
-    return Response(content=pdf_bytes, media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename={filename}"})
+    safe_filename = re.sub(r'[^\w.\-]', '_', filename)
+    return Response(content=pdf_bytes, media_type="application/pdf", headers={"Content-Disposition": f'attachment; filename="{safe_filename}"'})
 
 
 @router.post("/versions/{version_id}/set-status", response_model=QuoteVersionOut, dependencies=[Depends(require_roles(UserRole.admin, UserRole.sales, UserRole.operator))])

@@ -15,8 +15,9 @@ def apply_movement(db: Session, movement: InventoryMovement) -> None:
         new_v = int(filament.peso_residuo_g) - abs(int(movement.delta_peso_g))
         filament.peso_residuo_g = max(0, new_v)
     elif movement.tipo == MovementType.trasferimento:
-        # peso invariato, aggiorno ubicazione se presente
-        pass
+        # peso invariato, ma la destinazione è obbligatoria
+        if movement.to_location_id is None:
+            raise HTTPException(status_code=400, detail="Ubicazione destinazione obbligatoria per un trasferimento")
 
     if movement.to_location_id is not None:
         filament.ubicazione_id = movement.to_location_id

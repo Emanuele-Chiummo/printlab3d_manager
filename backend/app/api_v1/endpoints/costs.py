@@ -1,3 +1,5 @@
+import re
+
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -20,6 +22,13 @@ from app.schemas.costs import (
 from app.services.audit import log_action
 
 router = APIRouter()
+
+_PERIODO_RE = re.compile(r'^\d{4}-\d{2}$')
+
+
+def _validate_periodo(value: str | None, name: str) -> None:
+    if value is not None and not _PERIODO_RE.match(value):
+        raise HTTPException(status_code=400, detail=f"Parametro '{name}' deve essere nel formato YYYY-MM")
 
 
 @router.get("/categories", response_model=list[CostCategoryOut])
@@ -53,6 +62,8 @@ def list_entries(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
+    _validate_periodo(periodo_from, "periodo_from")
+    _validate_periodo(periodo_to, "periodo_to")
     q = db.query(CostEntry)
     if periodo_from:
         q = q.filter(CostEntry.periodo_yyyymm >= periodo_from)
@@ -103,6 +114,8 @@ def report_monthly(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
+    _validate_periodo(periodo_from, "periodo_from")
+    _validate_periodo(periodo_to, "periodo_to")
     q = db.query(CostEntry.periodo_yyyymm, func.coalesce(func.sum(CostEntry.importo_eur), 0).label("totale"))
     if periodo_from:
         q = q.filter(CostEntry.periodo_yyyymm >= periodo_from)
@@ -119,6 +132,8 @@ def report_by_job(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
+    _validate_periodo(periodo_from, "periodo_from")
+    _validate_periodo(periodo_to, "periodo_to")
     q = (
         db.query(
             CostEntry.job_id,
@@ -158,6 +173,8 @@ def report_by_customer(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
+    _validate_periodo(periodo_from, "periodo_from")
+    _validate_periodo(periodo_to, "periodo_to")
     q = (
         db.query(
             Customer.id.label("customer_id"),

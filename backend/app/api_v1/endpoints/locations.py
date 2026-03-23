@@ -10,11 +10,10 @@ from app.services.audit import log_action
 
 router = APIRouter()
 
+
 @router.get("", response_model=list[LocationOut])
 def list_locations_noslash(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
     return db.query(Location).order_by(Location.id).all()
-
-router = APIRouter()
 
 
 @router.get("/", response_model=list[LocationOut])

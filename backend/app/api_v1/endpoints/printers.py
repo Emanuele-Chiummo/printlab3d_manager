@@ -6,6 +6,7 @@ from app.api_v1.deps import get_db, get_current_user, require_roles
 from app.models.user import User, UserRole
 from app.models.printer import Printer
 from app.schemas.printer import PrinterCreate, PrinterUpdate, PrinterOut
+from app.services.audit import log_action
 
 router = APIRouter()
 
@@ -30,6 +31,8 @@ def create_printer(
     db.add(printer)
     db.commit()
     db.refresh(printer)
+    log_action(db, current_user.id, "Printer", printer.id, "CREATE")
+    db.commit()
     return printer
 
 
@@ -64,6 +67,8 @@ def update_printer(
     
     db.commit()
     db.refresh(printer)
+    log_action(db, current_user.id, "Printer", printer.id, "UPDATE")
+    db.commit()
     return printer
 
 
@@ -78,10 +83,7 @@ def delete_printer(
     if not printer:
         raise HTTPException(status_code=404, detail="Stampante non trovata")
     
-    db.delete(printer)
-    db.commit()
-    return {"detail": "Stampante eliminata con successo"}
-    
+    log_action(db, current_user.id, "Printer", printer.id, "DELETE")
     db.delete(printer)
     db.commit()
     return {"detail": "Stampante eliminata con successo"}

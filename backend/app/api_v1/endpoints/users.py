@@ -11,7 +11,7 @@ router = APIRouter()
 
 
 @router.get("/count", response_model=int)
-def user_count(db: Session = Depends(get_db)):
+def user_count(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
     return db.query(User).count()
 
 
@@ -80,7 +80,11 @@ def update_user(user_id: int, payload: UserUpdate, db: Session = Depends(get_db)
 
 
 @router.post("/{user_id}/reset-password", response_model=UserOut)
-def reset_password(user_id: int, payload: UserUpdate, db: Session = Depends(get_db)):
+def reset_password(user_id: int, payload: UserUpdate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    # Solo l'utente stesso o un admin possono resettare la password
+    current_role = UserRole(current.role) if not isinstance(current.role, UserRole) else current.role
+    if current.id != user_id and current_role != UserRole.admin:
+        raise HTTPException(status_code=403, detail="Permesso negato")
     u = db.get(User, user_id)
     if not u:
         raise HTTPException(status_code=404, detail="Utente non trovato")
@@ -90,6 +94,8 @@ def reset_password(user_id: int, payload: UserUpdate, db: Session = Depends(get_
     u.must_reset_password = False
     db.commit()
     db.refresh(u)
+    log_action(db, current.id, "User", u.id, "RESET_PASSWORD")
+    db.commit()
     return u
 
 

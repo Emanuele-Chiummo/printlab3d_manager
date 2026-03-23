@@ -14,7 +14,7 @@ router = APIRouter()
 def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == form.username).first()
     if not user or not verify_password(form.password, user.hashed_password):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Credenziali non valide")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenziali non valide")
     # role may be stored as plain string by our model; if it's an enum
     # instance take its `.value` property, otherwise use the string directly.
     # role is stored as uppercase string in the DB (see models/user);

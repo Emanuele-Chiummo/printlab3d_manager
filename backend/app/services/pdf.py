@@ -45,7 +45,7 @@ def render_quote_pdf(quote: Quote, qv: QuoteVersion, settings: PreventivoSetting
     c.drawString(x, y, f"Indirizzo: {quote.customer.indirizzo or '-'}")
     y -= 10 * mm
     # Stato solo testo
-    stato_str = str(qv.status).replace('QuoteStatus.', '')
+    stato_str = qv.status.value if hasattr(qv.status, 'value') else str(qv.status)
     c.setFont("Helvetica-Bold", 12)
     c.drawString(x, y, f"Stato: {stato_str}")
     y -= 12 * mm

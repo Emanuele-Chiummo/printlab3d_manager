@@ -1,8 +1,9 @@
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.db.session import SessionLocal
+from app.api_v1.deps import get_db, require_roles
 from app.db import settings as db_settings
+from app.models.user import UserRole
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -21,14 +22,7 @@ class PreventivoSettings(BaseModel):
     company_phone: str
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-@router.get('/preventivo', response_model=PreventivoSettings)
+@router.get('/preventivo', response_model=PreventivoSettings, dependencies=[Depends(require_roles(UserRole.admin))])
 def get_preventivo_settings(db: Session = Depends(get_db)):
     s = db_settings.get_settings(db)
     return PreventivoSettings(
@@ -45,7 +39,7 @@ def get_preventivo_settings(db: Session = Depends(get_db)):
         company_phone=s.company_phone
     )
 
-@router.post('/preventivo', response_model=PreventivoSettings)
+@router.post('/preventivo', response_model=PreventivoSettings, dependencies=[Depends(require_roles(UserRole.admin))])
 def set_preventivo_settings(data: PreventivoSettings, db: Session = Depends(get_db)):
     s = db_settings.update_settings(db, data.dict())
     return PreventivoSettings(
