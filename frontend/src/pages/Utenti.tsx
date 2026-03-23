@@ -1,24 +1,35 @@
 import React from 'react'
-import { Box, Button, Card, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography, Chip, MenuItem, Alert, CircularProgress, Paper, IconButton, Menu } from '@mui/material'
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography, Chip, MenuItem, Alert, CircularProgress, Paper, IconButton, Menu } from '@mui/material'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import ToggleOnIcon from '@mui/icons-material/ToggleOn'
 import ToggleOffIcon from '@mui/icons-material/ToggleOff'
+import GroupIcon from '@mui/icons-material/Group'
 import api from '../api/client'
 import { User, Role } from '../types'
 import { showError } from '../utils/toast'
+import EmptyState from '../components/EmptyState'
+import SkeletonTable from '../components/SkeletonTable'
 
 const roleOptions: Role[] = ['ADMIN', 'OPERATORE', 'COMMERCIALE', 'VIEWER']
 
 export default function UtentiPage() {
   const [rows, setRows] = React.useState<User[]>([])
+  const [tableLoading, setTableLoading] = React.useState(true)
   const [open, setOpen] = React.useState(false)
   const [form, setForm] = React.useState<Partial<User> & { password?: string }>({ role: 'VIEWER' })
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [anchorEl, setAnchorEl] = React.useState<{ [key: number]: HTMLElement | null }>({})
 
-  const load = () => api.get('/api/v1/users/').then(r => setRows(r.data))
-  React.useEffect(() => { load() }, [])
+  const load = async () => {
+    try {
+      const r = await api.get('/api/v1/users/')
+      setRows(r.data)
+    } finally {
+      setTableLoading(false)
+    }
+  }
+  React.useEffect(() => { void load() }, [])
 
   const onNew = () => {
     setForm({ role: 'VIEWER' })
@@ -101,6 +112,17 @@ export default function UtentiPage() {
             </Typography>
           </Box>
         </Stack>
+        {tableLoading ? (
+          <SkeletonTable columns={5} rows={4} />
+        ) : rows.length === 0 ? (
+          <EmptyState
+            icon={<GroupIcon />}
+            title="Nessun utente registrato"
+            subtitle="Crea il primo utente per abilitare l'accesso al sistema."
+            actionLabel="+ Nuovo utente"
+            onAction={onNew}
+          />
+        ) : (
         <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: 'auto', overflowY: 'auto' }}>
           <Table size="small" stickyHeader>
             <TableHead>
@@ -150,6 +172,7 @@ export default function UtentiPage() {
             </TableBody>
           </Table>
         </TableContainer>
+        )}
       </Paper>
       
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>

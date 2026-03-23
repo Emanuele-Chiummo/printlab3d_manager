@@ -21,16 +21,18 @@ import {
   TableContainer,
   TablePagination,
   Stack,
-  MenuItem,
   Paper,
   Chip,
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
+import EuroIcon from '@mui/icons-material/Euro'
 import api from '../api/client'
 import { showInfo } from '../utils/toast'
 import { useAuth } from '../components/AuthProvider'
-import { CostCategory, CostEntry, CostMonthly, CostByJob, CostByCustomer, Job, Customer } from '../api/types'
+import { CostCategory, CostEntry, MonthlyCostReport, CostByJobReport, CostByCustomerReport, Job, Customer } from '../api/types'
+import EmptyState from '../components/EmptyState'
+import SkeletonTable from '../components/SkeletonTable'
 
 function yyyymmNow(): string {
   const d = new Date()
@@ -48,6 +50,7 @@ export default function CostiPage() {
 
   const [categories, setCategories] = React.useState<CostCategory[]>([])
   const [entries, setEntries] = React.useState<CostEntry[]>([])
+  const [entriesLoading, setEntriesLoading] = React.useState(true)
   const [jobs, setJobs] = React.useState<Job[]>([])
   const [customers, setCustomers] = React.useState<Customer[]>([])
 
@@ -65,17 +68,23 @@ export default function CostiPage() {
   const [page, setPage] = React.useState(0)
   const [rowsPerPage, setRowsPerPage] = React.useState(10)
 
-  const [monthly, setMonthly] = React.useState<CostMonthly[]>([])
-  const [byJob, setByJob] = React.useState<CostByJob[]>([])
-  const [byCustomer, setByCustomer] = React.useState<CostByCustomer[]>([])
+  const [monthly, setMonthly] = React.useState<MonthlyCostReport[]>([])
+  const [byJob, setByJob] = React.useState<CostByJobReport[]>([])
+  const [byCustomer, setByCustomer] = React.useState<CostByCustomerReport[]>([])
 
   const loadCategories = () => api.get('/api/v1/costs/categories').then((r) => setCategories(r.data))
-  const loadEntries = () => {
-    const params: any = {}
-    if (filterFrom) params.periodo_from = filterFrom
-    if (filterTo) params.periodo_to = filterTo
-    if (filterCategory) params.categoria_id = Number(filterCategory)
-    return api.get('/api/v1/costs/entries', { params }).then((r) => setEntries(r.data))
+  const loadEntries = async () => {
+    setEntriesLoading(true)
+    try {
+      const params: any = {}
+      if (filterFrom) params.periodo_from = filterFrom
+      if (filterTo) params.periodo_to = filterTo
+      if (filterCategory) params.categoria_id = Number(filterCategory)
+      const r = await api.get('/api/v1/costs/entries', { params })
+      setEntries(r.data)
+    } finally {
+      setEntriesLoading(false)
+    }
   }
   const loadJobs = () => api.get('/api/v1/jobs/').then((r) => setJobs(r.data))
   const loadCustomers = () => api.get('/api/v1/customers/').then((r) => setCustomers(r.data))
@@ -241,6 +250,17 @@ export default function CostiPage() {
                 </Button>
               )}
             </Stack>
+            {entriesLoading ? (
+              <SkeletonTable columns={5} rows={5} />
+            ) : paged.length === 0 && !filterFrom && !filterTo && !filterCategory && !filterSearch ? (
+              <EmptyState
+                icon={<EuroIcon />}
+                title="Nessuna registrazione costi"
+                subtitle="Aggiungi la prima registrazione per tracciare i costi operativi del periodo."
+                actionLabel={canWriteEntries ? '+ Nuovo costo' : undefined}
+                onAction={canWriteEntries ? () => { setNewEntry((s) => ({ ...s, categoria_id: categories[0]?.id ?? 0 })); setEntryDialog(true) } : undefined}
+              />
+            ) : (
             <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: 'auto', overflowY: 'auto' }}>
               <Table size="small" stickyHeader>
                 <TableHead>
@@ -285,6 +305,7 @@ export default function CostiPage() {
             </TableBody>
             </Table>
             </TableContainer>
+            )}
           </Paper>
 
           <TablePagination
@@ -450,7 +471,7 @@ export default function CostiPage() {
                   <TableBody>
                     {byCustomer.map((r) => (
                       <TableRow key={r.customer_id}>
-                        <TableCell>{r.ragione_sociale}</TableCell>
+                        <TableCell>{r.customer}</TableCell>
                         <TableCell align="right">{Number(r.totale_eur).toFixed(2)}</TableCell>
                       </TableRow>
                     ))}
@@ -476,8 +497,8 @@ export default function CostiPage() {
                   {byJob.map((r) => (
                     <TableRow key={r.job_id} hover>
                       <TableCell>#{r.job_id}</TableCell>
-                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{r.quote_code}</TableCell>
-                      <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{r.customer_name}</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{r.quote_codice}</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{r.customer}</TableCell>
                       <TableCell align="right">{Number(r.totale_eur).toFixed(2)}</TableCell>
                     </TableRow>
                   ))}

@@ -2,6 +2,7 @@ import React from 'react'
 import {
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -23,7 +24,10 @@ import {
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
+import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing'
 import { useAuth } from '../components/AuthProvider'
+import EmptyState from '../components/EmptyState'
+import SkeletonTable from '../components/SkeletonTable'
 import api from '../api/client'
 import { showError } from '../utils/toast'
 
@@ -39,8 +43,6 @@ type Stampante = {
   totale_macchina_eur_h: number
   stato: 'ATTIVA' | 'MANUTENZIONE' | 'INATTIVA'
   note?: string
-  created_at?: string
-  updated_at?: string
 }
 
 const empty: Partial<Stampante> = {
@@ -54,9 +56,16 @@ const empty: Partial<Stampante> = {
   note: '',
 }
 
+const statoChipColor = (stato: string): 'success' | 'warning' | 'default' => {
+  if (stato === 'ATTIVA') return 'success'
+  if (stato === 'MANUTENZIONE') return 'warning'
+  return 'default'
+}
+
 export default function StampantiPage() {
   const { user } = useAuth()
   const [rows, setRows] = React.useState<Stampante[]>([])
+  const [loading, setLoading] = React.useState(true)
   const [open, setOpen] = React.useState(false)
   const [editing, setEditing] = React.useState<Stampante | null>(null)
   const [form, setForm] = React.useState<Partial<Stampante>>(empty)
@@ -68,30 +77,21 @@ export default function StampantiPage() {
       setRows(res.data)
     } catch (err) {
       console.error('Errore nel caricamento delle stampanti', err)
+    } finally {
+      setLoading(false)
     }
   }
 
-  React.useEffect(() => {
-    void load()
-  }, [])
+  React.useEffect(() => { void load() }, [])
 
   const canWrite = user?.role === 'ADMIN' || user?.role === 'OPERATORE'
 
-  const onNew = () => {
-    setEditing(null)
-    setForm(empty)
-    setOpen(true)
-  }
-
-  const onEdit = (s: Stampante) => {
-    setEditing(s)
-    setForm({ ...s })
-    setOpen(true)
-  }
+  const onNew = () => { setEditing(null); setForm(empty); setOpen(true) }
+  const onEdit = (s: Stampante) => { setEditing(s); setForm({ ...s }); setOpen(true) }
 
   const onSave = async () => {
     try {
-      if (editing && editing.id) {
+      if (editing?.id) {
         await api.put(`/api/v1/printers/${editing.id}`, form)
       } else {
         await api.post('/api/v1/printers', form)
@@ -99,8 +99,7 @@ export default function StampantiPage() {
       setOpen(false)
       await load()
     } catch (err: any) {
-      const detail = err.response?.data?.detail || 'Errore durante il salvataggio'
-      showError(detail)
+      showError(err.response?.data?.detail || 'Errore durante il salvataggio')
     }
   }
 
@@ -110,25 +109,11 @@ export default function StampantiPage() {
       await api.delete(`/api/v1/printers/${s.id}`)
       await load()
     } catch (err: any) {
-      const detail = err.response?.data?.detail || "Errore durante l'eliminazione"
-      showError(detail)
+      showError(err.response?.data?.detail || "Errore durante l'eliminazione")
     }
   }
 
   const statoOptions: Array<'ATTIVA' | 'MANUTENZIONE' | 'INATTIVA'> = ['ATTIVA', 'MANUTENZIONE', 'INATTIVA']
-
-  const getStatoColor = (stato: string) => {
-    switch (stato) {
-      case 'ATTIVA':
-        return '#0f9d58'
-      case 'MANUTENZIONE':
-        return '#d97706'
-      case 'INATTIVA':
-        return '#64748b'
-      default:
-        return '#64748b'
-    }
-  }
 
   return (
     <>
@@ -169,15 +154,22 @@ export default function StampantiPage() {
             </Typography>
           </Box>
         </Stack>
-        {rows.length === 0 ? (
-          <Box sx={{ py: 8, textAlign: 'center', color: 'text.secondary' }}>
-            <Typography variant="body2">Non ci sono ancora stampanti registrate.</Typography>
-          </Box>
+
+        {loading ? (
+          <SkeletonTable columns={7} rows={4} />
+        ) : rows.length === 0 ? (
+          <EmptyState
+            icon={<PrecisionManufacturingIcon />}
+            title="Nessuna stampante registrata"
+            subtitle="Aggiungi la tua prima stampante per iniziare a tracciare produzione e costi macchina."
+            actionLabel={canWrite ? '+ Aggiungi stampante' : undefined}
+            onAction={canWrite ? onNew : undefined}
+          />
         ) : (
           <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: 'auto', overflowY: 'auto' }}>
             <Table size="small" stickyHeader>
               <TableHead>
-                <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
+                <TableRow>
                   <TableCell sx={{ fontWeight: 600 }}>Nome</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Modello</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Potenza (W)</TableCell>
@@ -189,37 +181,35 @@ export default function StampantiPage() {
               </TableHead>
               <TableBody>
                 {rows.map((r) => (
-                  <TableRow key={r.id} hover>
+                  <TableRow
+                    key={r.id}
+                    hover
+                    sx={{
+                      bgcolor: editing?.id === r.id && open
+                        ? 'rgba(37,99,235,0.08) !important'
+                        : undefined,
+                    }}
+                  >
                     <TableCell sx={{ fontWeight: 600 }}>{r.nome}</TableCell>
                     <TableCell>{r.modello}</TableCell>
                     <TableCell>{r.potenza_w} W</TableCell>
-                    <TableCell sx={{ fontWeight: 600, color: '#1d4ed8' }}>€{r.totale_macchina_eur_h.toFixed(4)}</TableCell>
+                    <TableCell sx={{ fontWeight: 600, color: 'primary.main' }}>
+                      €{r.totale_macchina_eur_h.toFixed(4)}
+                    </TableCell>
                     <TableCell>
-                      <Box
-                        sx={{
-                          display: 'inline-block',
-                          px: 1.5,
-                          py: 0.5,
-                          borderRadius: 1,
-                          fontWeight: 600,
-                          fontSize: '0.75rem',
-                          backgroundColor: `${getStatoColor(r.stato)}20`,
-                          color: getStatoColor(r.stato),
-                        }}
-                      >
-                        {r.stato}
-                      </Box>
+                      <Chip
+                        label={r.stato}
+                        color={statoChipColor(r.stato)}
+                        size="small"
+                      />
                     </TableCell>
                     <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {r.note || '-'}
+                      {r.note || '—'}
                     </TableCell>
                     <TableCell align="right">
                       {canWrite && (
                         <>
-                          <IconButton
-                            size="small"
-                            onClick={(e) => setAnchorEl({ ...anchorEl, [r.id]: e.currentTarget })}
-                          >
+                          <IconButton size="small" onClick={(e) => setAnchorEl({ ...anchorEl, [r.id]: e.currentTarget })}>
                             <MoreVertIcon fontSize="small" />
                           </IconButton>
                           <Menu
@@ -227,20 +217,10 @@ export default function StampantiPage() {
                             open={Boolean(anchorEl[r.id])}
                             onClose={() => setAnchorEl({ ...anchorEl, [r.id]: null })}
                           >
-                            <MenuItem
-                              onClick={() => {
-                                onEdit(r)
-                                setAnchorEl({ ...anchorEl, [r.id]: null })
-                              }}
-                            >
+                            <MenuItem onClick={() => { onEdit(r); setAnchorEl({ ...anchorEl, [r.id]: null }) }}>
                               <EditIcon fontSize="small" sx={{ mr: 1 }} color="primary" /> Modifica
                             </MenuItem>
-                            <MenuItem
-                              onClick={() => {
-                                onDelete(r)
-                                setAnchorEl({ ...anchorEl, [r.id]: null })
-                              }}
-                            >
+                            <MenuItem onClick={() => { onDelete(r); setAnchorEl({ ...anchorEl, [r.id]: null }) }}>
                               <DeleteIcon fontSize="small" sx={{ mr: 1 }} color="error" /> Elimina
                             </MenuItem>
                           </Menu>
@@ -255,103 +235,44 @@ export default function StampantiPage() {
         )}
       </Paper>
 
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontSize: { xs: '1.1rem', md: '1.25rem' } }}>{editing ? 'Modifica stampante' : 'Nuova stampante'}</DialogTitle>
+      <Dialog open={open} onClose={() => { setOpen(false); setEditing(null) }} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontSize: { xs: '1.1rem', md: '1.25rem' } }}>
+          {editing ? 'Modifica stampante' : 'Nuova stampante'}
+        </DialogTitle>
         <DialogContent sx={{ p: { xs: 2, md: 3 } }}>
           <Box sx={{ display: 'grid', gap: 2, mt: 1, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
-            <TextField
-              label="Nome"
-              value={form.nome || ''}
-              onChange={(e) => setForm((s) => ({ ...s, nome: e.target.value }))}
-              size="small"
-            />
-            <TextField
-              label="Modello"
-              value={form.modello || ''}
-              onChange={(e) => setForm((s) => ({ ...s, modello: e.target.value }))}
-              size="small"
-            />
-            <TextField
-              label="Potenza (W)"
-              type="number"
-              value={form.potenza_w ?? ''}
-              onChange={(e) => setForm((s) => ({ ...s, potenza_w: Number(e.target.value) }))}
-              size="small"
-            />
-            <TextField
-              label="Costo macchina (€)"
-              type="number"
-              value={form.costo_macchina_eur ?? ''}
-              onChange={(e) => setForm((s) => ({ ...s, costo_macchina_eur: Number(e.target.value) }))}
-              size="small"
-            />
-            <TextField
-              label="Vita stimata (ore)"
-              type="number"
-              value={form.vita_stimata_h ?? 8000}
-              onChange={(e) => setForm((s) => ({ ...s, vita_stimata_h: Number(e.target.value) }))}
-              size="small"
-            />
-            <TextField
-              label="Manutenzione (€/h)"
-              type="number"
-              inputProps={{ step: '0.01' }}
-              value={form.manutenzione_eur_h ?? 0.20}
-              onChange={(e) => setForm((s) => ({ ...s, manutenzione_eur_h: Number(e.target.value) }))}
-              size="small"
-            />
+            <TextField label="Nome" value={form.nome || ''} onChange={(e) => setForm((s) => ({ ...s, nome: e.target.value }))} size="small" />
+            <TextField label="Modello" value={form.modello || ''} onChange={(e) => setForm((s) => ({ ...s, modello: e.target.value }))} size="small" />
+            <TextField label="Potenza (W)" type="number" value={form.potenza_w ?? ''} onChange={(e) => setForm((s) => ({ ...s, potenza_w: Number(e.target.value) }))} size="small" inputProps={{ min: 0 }} />
+            <TextField label="Costo macchina (€)" type="number" value={form.costo_macchina_eur ?? ''} onChange={(e) => setForm((s) => ({ ...s, costo_macchina_eur: Number(e.target.value) }))} size="small" inputProps={{ min: 0 }} />
+            <TextField label="Vita stimata (ore)" type="number" value={form.vita_stimata_h ?? 8000} onChange={(e) => setForm((s) => ({ ...s, vita_stimata_h: Number(e.target.value) }))} size="small" inputProps={{ min: 1 }} />
+            <TextField label="Manutenzione (€/h)" type="number" inputProps={{ step: '0.01', min: 0 }} value={form.manutenzione_eur_h ?? 0.20} onChange={(e) => setForm((s) => ({ ...s, manutenzione_eur_h: Number(e.target.value) }))} size="small" />
             <TextField
               label="Deprezzamento (€/h)"
-              value={
-                form.costo_macchina_eur && form.vita_stimata_h
-                  ? (form.costo_macchina_eur / form.vita_stimata_h).toFixed(4)
-                  : '0.0000'
-              }
+              value={form.costo_macchina_eur && form.vita_stimata_h ? (form.costo_macchina_eur / form.vita_stimata_h).toFixed(4) : '0.0000'}
               InputProps={{ readOnly: true }}
               helperText="Calcolato: Costo macchina / Vita"
               size="small"
             />
             <TextField
               label="Totale macchina (€/h)"
-              value={
-                form.costo_macchina_eur && form.vita_stimata_h && form.manutenzione_eur_h !== undefined
-                  ? ((form.costo_macchina_eur / form.vita_stimata_h) + form.manutenzione_eur_h).toFixed(4)
-                  : '0.0000'
-              }
+              value={form.costo_macchina_eur && form.vita_stimata_h && form.manutenzione_eur_h !== undefined
+                ? ((form.costo_macchina_eur / form.vita_stimata_h) + form.manutenzione_eur_h).toFixed(4)
+                : '0.0000'}
               InputProps={{ readOnly: true }}
               helperText="Calcolato: Deprezzamento + Manutenzione"
-              sx={{ '& .MuiInputBase-root': { fontWeight: 600, color: '#1d4ed8' } }}
+              sx={{ '& .MuiInputBase-root': { fontWeight: 600, color: 'primary.main' } }}
               size="small"
             />
-            <TextField
-              select
-              label="Stato"
-              value={form.stato || 'ATTIVA'}
-              onChange={(e) => setForm((s) => ({ ...s, stato: e.target.value as any }))}
-              size="small"
-            >
-              {statoOptions.map((t) => (
-                <MenuItem key={t} value={t}>
-                  {t}
-                </MenuItem>
-              ))}
+            <TextField select label="Stato" value={form.stato || 'ATTIVA'} onChange={(e) => setForm((s) => ({ ...s, stato: e.target.value as any }))} size="small">
+              {statoOptions.map((t) => <MenuItem key={t} value={t}>{t}</MenuItem>)}
             </TextField>
-            <TextField
-              label="Note"
-              value={form.note || ''}
-              onChange={(e) => setForm((s) => ({ ...s, note: e.target.value }))}
-              multiline
-              rows={3}
-              sx={{ gridColumn: { md: '1 / -1' } }}
-              size="small"
-            />
+            <TextField label="Note" value={form.note || ''} onChange={(e) => setForm((s) => ({ ...s, note: e.target.value }))} multiline rows={3} sx={{ gridColumn: { md: '1 / -1' } }} size="small" />
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: { xs: 1.5, md: 2 } }}>
-          <Button onClick={() => setOpen(false)}>Annulla</Button>
-          <Button variant="contained" onClick={onSave}>
-            Salva
-          </Button>
+          <Button onClick={() => { setOpen(false); setEditing(null) }}>Annulla</Button>
+          <Button variant="contained" onClick={onSave}>Salva</Button>
         </DialogActions>
       </Dialog>
     </>

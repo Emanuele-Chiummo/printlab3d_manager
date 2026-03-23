@@ -23,24 +23,32 @@ import {
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
+import LocationOnIcon from '@mui/icons-material/LocationOn'
 import { loadLocations, createLocation, updateLocation, deleteLocation } from '../services/locations'
 import { Location } from '../api/types'
 import { useAuth } from '../components/AuthProvider'
 import { showError } from '../utils/toast'
+import EmptyState from '../components/EmptyState'
+import SkeletonTable from '../components/SkeletonTable'
 
 const empty: Partial<Location> = { nome: '', tipo: 'SLOT', parent_id: null }
 
 export default function UbicazioniPage() {
   const { user } = useAuth()
   const [rows, setRows] = React.useState<Location[]>([])
+  const [tableLoading, setTableLoading] = React.useState(true)
   const [open, setOpen] = React.useState(false)
   const [editing, setEditing] = React.useState<Location | null>(null)
   const [form, setForm] = React.useState<Partial<Location>>(empty)
   const [anchorEl, setAnchorEl] = React.useState<{ [key: number]: HTMLElement | null }>({})
 
   const load = async () => {
-    const data = await loadLocations()
-    setRows(data)
+    try {
+      const data = await loadLocations()
+      setRows(data)
+    } finally {
+      setTableLoading(false)
+    }
   }
   React.useEffect(() => {
     void load()
@@ -119,10 +127,16 @@ export default function UbicazioniPage() {
             </Typography>
           </Box>
         </Stack>
-        {rows.length === 0 ? (
-          <Box sx={{ py: 8, textAlign: 'center', color: 'text.secondary' }}>
-            <Typography variant="body2">Non ci sono ancora ubicazioni registrate.</Typography>
-          </Box>
+        {tableLoading ? (
+          <SkeletonTable columns={4} rows={4} />
+        ) : rows.length === 0 ? (
+          <EmptyState
+            icon={<LocationOnIcon />}
+            title="Nessuna ubicazione registrata"
+            subtitle="Aggiungi magazzini, scaffali e slot per organizzare l'inventario filamenti."
+            actionLabel={canWrite ? '+ Nuova ubicazione' : undefined}
+            onAction={canWrite ? onNew : undefined}
+          />
         ) : (
           <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: 'auto', overflowY: 'auto' }}>
             <Table size="small" stickyHeader>

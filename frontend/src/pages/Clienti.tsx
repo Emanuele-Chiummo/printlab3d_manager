@@ -23,9 +23,12 @@ import {
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
+import PersonIcon from '@mui/icons-material/Person'
 import api from '../api/client'
 import { Customer } from '../api/types'
 import { useAuth } from '../components/AuthProvider'
+import EmptyState from '../components/EmptyState'
+import SkeletonTable from '../components/SkeletonTable'
 
 const empty: Partial<Customer> = {
   tipo_cliente: 'DITTA',
@@ -43,12 +46,20 @@ const empty: Partial<Customer> = {
 export default function ClientiPage() {
   const { user } = useAuth()
   const [rows, setRows] = React.useState<Customer[]>([])
+  const [loading, setLoading] = React.useState(true)
   const [open, setOpen] = React.useState(false)
   const [editing, setEditing] = React.useState<Customer | null>(null)
   const [form, setForm] = React.useState<Partial<Customer>>(empty)
   const [anchorEl, setAnchorEl] = React.useState<{ [key: number]: HTMLElement | null }>({})
 
-  const load = () => api.get('/api/v1/customers/').then((r) => setRows(r.data))
+  const load = async () => {
+    try {
+      const r = await api.get('/api/v1/customers/')
+      setRows(r.data)
+    } finally {
+      setLoading(false)
+    }
+  }
   React.useEffect(() => {
     void load()
   }, [])
@@ -117,6 +128,17 @@ export default function ClientiPage() {
             </Typography>
           </Box>
         </Stack>
+        {loading ? (
+          <SkeletonTable columns={5} rows={5} />
+        ) : rows.length === 0 ? (
+          <EmptyState
+            icon={<PersonIcon />}
+            title="Nessun cliente registrato"
+            subtitle="Aggiungi il tuo primo cliente per iniziare a gestire preventivi e job."
+            actionLabel={canWrite ? '+ Nuovo cliente' : undefined}
+            onAction={canWrite ? onNew : undefined}
+          />
+        ) : (
         <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: 'auto', overflowY: 'auto' }}>
           <Table size="small" stickyHeader>
             <TableHead>
@@ -168,6 +190,7 @@ export default function ClientiPage() {
         </TableBody>
         </Table>
       </TableContainer>
+        )}
       </Paper>
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>

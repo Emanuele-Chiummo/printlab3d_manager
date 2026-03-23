@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import {
   AppBar,
   Avatar,
+  Badge,
   Box,
   Chip,
   CssBaseline,
@@ -16,8 +17,10 @@ import {
   Menu,
   MenuItem,
   Toolbar,
+  Tooltip,
   Typography,
   useMediaQuery,
+  useTheme,
 } from '@mui/material'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import Inventory2Icon from '@mui/icons-material/Inventory2'
@@ -32,41 +35,59 @@ import MenuIcon from '@mui/icons-material/Menu'
 import LogoutIcon from '@mui/icons-material/Logout'
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
+import DarkModeIcon from '@mui/icons-material/DarkMode'
+import LightModeIcon from '@mui/icons-material/LightMode'
 import { useAuth } from '../components/AuthProvider'
+import { useThemeMode } from '../components/ThemeContext'
+import api from '../api/client'
 
 const drawerWidth = 260
 const contentMaxWidth = 1320
 
-type NavItem = { label: string; icon: React.ReactNode; to: string }
+type NavItem = { label: string; icon: React.ReactNode; to: string; badgeKey?: 'jobs' | 'stock' }
 
 const items: NavItem[] = [
   { label: 'Dashboard', icon: <DashboardIcon />, to: '/' },
-  { label: 'Filamenti', icon: <Inventory2Icon />, to: '/filamenti' },
+  { label: 'Filamenti', icon: <Inventory2Icon />, to: '/filamenti', badgeKey: 'stock' },
   { label: 'Stampanti', icon: <PrecisionManufacturingIcon />, to: '/stampanti' },
   { label: 'Ubicazioni', icon: <LocationOnIcon />, to: '/ubicazioni' },
   { label: 'Clienti', icon: <PeopleIcon />, to: '/clienti' },
   { label: 'Preventivi', icon: <ReceiptLongIcon />, to: '/preventivi' },
-  { label: 'Job', icon: <PrintIcon />, to: '/job' },
+  { label: 'Job', icon: <PrintIcon />, to: '/job', badgeKey: 'jobs' },
   { label: 'Costi', icon: <EuroIcon />, to: '/costi' },
 ]
 
 const pageMeta: Record<string, { title: string; subtitle: string }> = {
   '/': { title: 'Panoramica generale', subtitle: 'Controlla performance e produzione' },
-  '/filamenti': { title: 'Magazzino filamenti', subtitle: 'Gestisci materiali e scorte' },  '/stampanti': { title: 'Stampanti 3D', subtitle: 'Gestisci il parco macchine' },  '/ubicazioni': { title: 'Ubicazioni', subtitle: 'Traccia shelf e posizioni' },
+  '/filamenti': { title: 'Magazzino filamenti', subtitle: 'Gestisci materiali e scorte' },
+  '/stampanti': { title: 'Stampanti 3D', subtitle: 'Gestisci il parco macchine' },
+  '/ubicazioni': { title: 'Ubicazioni', subtitle: 'Traccia shelf e posizioni' },
   '/clienti': { title: 'Clienti', subtitle: 'Gestisci relazioni e attività' },
   '/preventivi': { title: 'Preventivi', subtitle: 'Crea e monitora le offerte' },
   '/job': { title: 'Job di stampa', subtitle: 'Supervisiona produzione e costi' },
   '/costi': { title: 'Costi operativi', subtitle: 'Controlla analisi e movimenti' },
   '/utenti': { title: 'Team & permessi', subtitle: 'Amministra gli accessi' },
-  '/impostazioni': { title: 'Impostazioni', subtitle: 'Configura l’esperienza PrintLab' },
+  '/impostazioni': { title: 'Impostazioni', subtitle: 'Configura l\'esperienza PrintLab' },
+}
+
+const roleLabel: Record<string, string> = {
+  ADMIN: 'Admin',
+  OPERATORE: 'Operatore',
+  COMMERCIALE: 'Commerciale',
+  VIEWER: 'Viewer',
 }
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation()
   const { user, logout } = useAuth()
+  const { mode, toggleTheme } = useThemeMode()
+  const muiTheme = useTheme()
+  const isDark = mode === 'dark'
   const isMobile = useMediaQuery('(max-width:900px)')
   const [open, setOpen] = React.useState(!isMobile)
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
+  const [badges, setBadges] = React.useState<{ jobs: number; stock: number }>({ jobs: 0, stock: 0 })
+
   const currentMeta = pageMeta[location.pathname] ?? {
     title: 'Gestionale PrintLab',
     subtitle: 'Controlla produzione e margini',
@@ -81,52 +102,38 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     setOpen(!isMobile)
   }, [isMobile])
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget)
-  }
+  // Fetch KPI badges
+  React.useEffect(() => {
+    api.get('/api/v1/dashboard/kpi')
+      .then((r) => setBadges({ jobs: r.data.job_in_corso ?? 0, stock: r.data.stock_basso ?? 0 }))
+      .catch(() => {})
+  }, [location.pathname])
 
-  const handleMenuClose = () => {
-    setAnchorEl(null)
-  }
-
-  const handleLogout = () => {
-    handleMenuClose()
-    logout()
-  }
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget)
+  const handleMenuClose = () => setAnchorEl(null)
+  const handleLogout = () => { handleMenuClose(); logout() }
 
   const navItems = React.useMemo(() => {
     const nav = [...items]
-    if (user?.role === 'ADMIN') {
-      nav.push({ label: 'Utenti', icon: <SupervisorAccountIcon />, to: '/utenti' })
-    }
+    if (user?.role === 'ADMIN') nav.push({ label: 'Utenti', icon: <SupervisorAccountIcon />, to: '/utenti' })
     nav.push({ label: 'Impostazioni', icon: <SettingsIcon />, to: '/impostazioni' })
     return nav
   }, [user])
 
+  const initials = (user?.full_name?.[0] || user?.email?.[0] || 'U').toUpperCase()
+
   const drawer = (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', zIndex: 0, overflow: 'hidden', minHeight: 0 }}>
-      <Box
-        sx={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(160deg, rgba(255,255,255,0.6) 0%, rgba(148, 207, 255, 0.25) 100%)',
-          pointerEvents: 'none',
-          zIndex: -1,
-        }}
-      />
+      {/* Logo */}
       <Toolbar sx={{ minHeight: { xs: '48px', md: '64px' }, p: { xs: 1, sm: 2.5 }, alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 1, display: { xs: 'none', sm: 'flex' } }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 0.5, sm: 0.75 }, width: '100%' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <img
-              src="/logo.svg"
-              alt="PrintLab"
-              style={{ width: 32, height: 32, borderRadius: 4, display: 'block', flexShrink: 0 }}
-            />
+            <img src="/logo.svg" alt="PrintLab" style={{ width: 32, height: 32, borderRadius: 4, display: 'block', flexShrink: 0 }} />
             <Box>
               <Typography variant="h6" noWrap sx={{ fontWeight: 700, fontSize: { xs: '0.9rem', sm: '1.25rem' } }}>
                 PrintLab OS
               </Typography>
-              <Typography variant="caption" sx={{ color: '#52607c', letterSpacing: 1, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', letterSpacing: 1, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
                 Manufacturing Hub
               </Typography>
             </Box>
@@ -138,20 +145,25 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           />
         </Box>
       </Toolbar>
+
       <Box sx={{ px: 3, py: 1, pt: { xs: 0, sm: 1 }, display: { xs: 'none', sm: 'block' } }}>
-        <Typography variant="overline" sx={{ color: '#94a3b8', letterSpacing: 1 }}>
+        <Typography variant="overline" sx={{ color: 'text.secondary', letterSpacing: 1, fontSize: '0.7rem' }}>
           Navigazione
         </Typography>
       </Box>
+
+      {/* Nav items */}
       <List sx={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
         {navItems.map((item) => {
           const selected = location.pathname === item.to
+          const badgeCount = item.badgeKey === 'jobs' ? badges.jobs : item.badgeKey === 'stock' ? badges.stock : 0
           return (
             <ListItemButton
               key={item.to}
               component={Link}
               to={item.to}
               selected={selected}
+              onClick={() => isMobile && setOpen(false)}
               sx={{
                 position: 'relative',
                 overflow: 'hidden',
@@ -170,29 +182,55 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   : undefined,
               }}
             >
-              <ListItemIcon sx={{ color: selected ? '#2563eb' : '#52607c', minWidth: 40 }}>{item.icon}</ListItemIcon>
+              <ListItemIcon sx={{ color: selected ? '#2563eb' : 'text.secondary', minWidth: 40 }}>
+                {badgeCount > 0 ? (
+                  <Badge
+                    badgeContent={badgeCount}
+                    color={item.badgeKey === 'stock' ? 'warning' : 'primary'}
+                    max={99}
+                    sx={{ '& .MuiBadge-badge': { fontSize: '0.6rem', height: 16, minWidth: 16 } }}
+                  >
+                    {item.icon}
+                  </Badge>
+                ) : (
+                  item.icon
+                )}
+              </ListItemIcon>
               <ListItemText
                 primary={item.label}
-                primaryTypographyProps={{ fontWeight: selected ? 700 : 500, color: selected ? '#0f172a' : '#1f2937' }}
+                primaryTypographyProps={{ fontWeight: selected ? 700 : 500 }}
               />
             </ListItemButton>
           )
         })}
       </List>
+
+      {/* User profile at bottom */}
       <Box
         sx={{
-          px: 2.5,
+          px: 2,
           py: 2,
-          borderTop: '1px solid rgba(15,23,42,0.08)',
-          position: 'relative',
+          borderTop: `1px solid ${muiTheme.palette.divider}`,
         }}
       >
-        <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mb: 0.5 }}>
-          PrintLab 3D Manager
-        </Typography>
-        <Typography variant="caption" sx={{ color: '#0f172a', fontWeight: 600 }}>
-          {__APP_VERSION__}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Avatar sx={{ width: 36, height: 36, background: '#2563eb', fontSize: '0.85rem', flexShrink: 0 }}>
+            {initials}
+          </Avatar>
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.8rem', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {user?.full_name || user?.email || 'Utente'}
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+              {roleLabel[user?.role ?? ''] ?? user?.role ?? ''}
+            </Typography>
+          </Box>
+          <Tooltip title="Logout">
+            <IconButton size="small" onClick={handleLogout} sx={{ color: 'text.secondary', flexShrink: 0 }}>
+              <LogoutIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Box>
     </Box>
   )
@@ -202,40 +240,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <CssBaseline />
       <AppBar
         position="fixed"
-        sx={{
-          zIndex: (t) => t.zIndex.drawer + 1,
-          backgroundColor: '#ffffffeb',
-          color: '#0f172a',
-          boxShadow: '0 1px 4px rgba(15,23,42,0.08)',
-          borderBottom: '1px solid rgba(15,23,42,0.05)',
-          backdropFilter: 'blur(14px)',
-          borderRadius: 0,
-        }}
+        sx={{ zIndex: (t) => t.zIndex.drawer + 1, backdropFilter: 'blur(14px)', borderRadius: 0 }}
       >
         <Toolbar sx={{ minHeight: { xs: '56px', md: '64px' }, py: { xs: 1, md: 1.5 } }}>
-          <Box
-            sx={{
-              width: '100%',
-              maxWidth: contentMaxWidth,
-              mx: 'auto',
-              px: { xs: 2, md: 4 },
-              display: 'flex',
-              alignItems: 'center',
-              gap: 2,
-            }}
-          >
+          <Box sx={{ width: '100%', maxWidth: contentMaxWidth, mx: 'auto', px: { xs: 2, md: 4 }, display: 'flex', alignItems: 'center', gap: 2 }}>
             {isMobile && (
               <IconButton edge="start" color="inherit" onClick={() => setOpen((s) => !s)}>
                 <MenuIcon />
               </IconButton>
             )}
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                {currentMeta.title}
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                {currentMeta.subtitle}
-              </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>{currentMeta.title}</Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>{currentMeta.subtitle}</Typography>
             </Box>
             <Box sx={{ flexGrow: 1 }} />
             <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 2 }}>
@@ -246,21 +262,34 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </Typography>
               </Box>
               <Chip
-                label={user?.role === 'ADMIN' ? 'Admin' : user?.role || 'Utente'}
+                label={roleLabel[user?.role ?? ''] ?? user?.role ?? 'Utente'}
                 color="primary"
                 sx={{ fontWeight: 600, background: 'rgba(37,99,235,0.12)', color: '#1d4ed8' }}
               />
             </Box>
+
+            {/* Dark mode toggle */}
+            <Tooltip title={isDark ? 'Modalità chiara' : 'Modalità scura'}>
+              <IconButton color="inherit" onClick={toggleTheme} size="small">
+                {isDark ? <LightModeIcon sx={{ fontSize: 20 }} /> : <DarkModeIcon sx={{ fontSize: 20 }} />}
+              </IconButton>
+            </Tooltip>
+
             <IconButton color="inherit" onClick={handleMenuOpen}>
               <Avatar sx={{ width: 40, height: 40, background: '#2563eb', fontSize: '0.9rem' }}>
-                {(user?.full_name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
+                {initials}
               </Avatar>
             </IconButton>
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
               <MenuItem disabled>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {user?.full_name || user?.email}
-                </Typography>
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    {user?.full_name || user?.email}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {roleLabel[user?.role ?? ''] ?? user?.role ?? ''}
+                  </Typography>
+                </Box>
               </MenuItem>
               <Divider />
               <MenuItem onClick={handleLogout} sx={{ color: '#ef4444' }}>
@@ -282,9 +311,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           '& .MuiDrawer-paper': {
             width: drawerWidth,
             boxSizing: 'border-box',
-            backgroundColor: '#ffffff',
             border: 'none',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
             pt: { xs: '56px', md: 0 },
             height: '100vh',
           },
@@ -299,12 +326,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         sx={{
           flexGrow: 1,
           minHeight: '100vh',
-          background: 'radial-gradient(circle at top, rgba(148,163,255,0.18), transparent 55%)',
+          background: isDark
+            ? 'radial-gradient(circle at top, rgba(37,99,235,0.08), transparent 55%)'
+            : 'radial-gradient(circle at top, rgba(148,163,255,0.18), transparent 55%)',
           overflow: { xs: 'hidden', md: 'visible' },
           mt: { xs: '56px', md: '64px' },
         }}
       >
-        <Box sx={{ width: '100%', maxWidth: contentMaxWidth, mx: 'auto', px: { xs: 1, sm: 2, md: 4 }, pb: 4, overflow: 'auto' }}>{children}</Box>
+        <Box sx={{ width: '100%', maxWidth: contentMaxWidth, mx: 'auto', px: { xs: 1, sm: 2, md: 4 }, pb: 4, overflow: 'auto' }}>
+          {children}
+        </Box>
       </Box>
     </Box>
   )

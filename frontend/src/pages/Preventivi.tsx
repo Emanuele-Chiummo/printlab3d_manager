@@ -31,11 +31,13 @@ import SendIcon from '@mui/icons-material/Send'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CancelIcon from '@mui/icons-material/Cancel'
 import WorkIcon from '@mui/icons-material/Work'
+import RequestQuoteIcon from '@mui/icons-material/RequestQuote'
 import api from '../api/client'
 import { Customer, Filament, Quote, QuoteVersion } from '../api/types'
 import { showSuccess, showError } from '../utils/toast'
-// ...existing code...
 import { useAuth } from '../components/AuthProvider'
+import EmptyState from '../components/EmptyState'
+import SkeletonTable from '../components/SkeletonTable'
 
 export default function PreventiviPage() {
   const { user } = useAuth()
@@ -51,7 +53,15 @@ export default function PreventiviPage() {
   const canWrite = user?.role === 'ADMIN' || user?.role === 'OPERATORE' || user?.role === 'COMMERCIALE'
   const canCreateJob = user?.role === 'ADMIN' || user?.role === 'OPERATORE'
 
-  const loadQuotes = () => api.get('/api/v1/quotes/').then((r) => setQuotes(r.data))
+  const [quotesLoading, setQuotesLoading] = React.useState(true)
+  const loadQuotes = async () => {
+    try {
+      const r = await api.get('/api/v1/quotes/')
+      setQuotes(r.data)
+    } finally {
+      setQuotesLoading(false)
+    }
+  }
   const loadCustomers = () => api.get('/api/v1/customers/').then((r) => {
     setCustomers(r.data)
   })
@@ -319,6 +329,17 @@ export default function PreventiviPage() {
               </Typography>
             </Box>
           </Stack>
+          {quotesLoading ? (
+            <SkeletonTable columns={2} rows={5} />
+          ) : quotes.length === 0 ? (
+            <EmptyState
+              icon={<RequestQuoteIcon />}
+              title="Nessun preventivo registrato"
+              subtitle="Crea il primo preventivo per iniziare a gestire i lavori di stampa."
+              actionLabel={canWrite ? '+ Nuovo preventivo' : undefined}
+              onAction={canWrite ? () => setOpenQ(true) : undefined}
+            />
+          ) : (
           <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: 'auto', overflowY: 'auto' }}>
             <Table size="small" stickyHeader>
               <TableHead>
@@ -348,6 +369,7 @@ export default function PreventiviPage() {
               </TableBody>
             </Table>
           </TableContainer>
+          )}
         </Paper>
 
         <Paper sx={{ p: { xs: 1.5, sm: 2, md: 2.5 } }}>

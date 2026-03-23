@@ -102,3 +102,4 @@ Thumbs.db
 # Alembic
 # Keep versions folder but ignore any local test migrations
 # alembic/versions/*.py (uncomment if needed)
+CLAUDE.md

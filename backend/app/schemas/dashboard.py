@@ -10,3 +10,14 @@ class DashboardKPI(BaseModel):
     costi_mese_eur: float
     utile_mese_eur: float
     clienti_attivi: int
+
+
+class TrendPoint(BaseModel):
+    periodo: str
+    ricavi: float
+    costi: float
+    job_completati: int
+
+
+class DashboardTrends(BaseModel):
+    points: list[TrendPoint]

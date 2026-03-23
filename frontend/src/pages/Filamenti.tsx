@@ -39,6 +39,8 @@ import DeviceHubIcon from '@mui/icons-material/DeviceHub'
 import api from '../api/client'
 import { Filament } from '../api/types'
 import { useAuth } from '../components/AuthProvider'
+import EmptyState from '../components/EmptyState'
+import SkeletonTable from '../components/SkeletonTable'
 
 const empty: Partial<Filament> = {
   materiale: 'PLA',
@@ -101,6 +103,7 @@ function stableSort<T>(array: readonly T[], comparator: (a: T, b: T) => number) 
 export default function FilamentiPage() {
   const { user } = useAuth()
   const [rows, setRows] = React.useState<Filament[]>([])
+  const [loading, setLoading] = React.useState(true)
   const [locations, setLocations] = React.useState<any[]>([])
   const [open, setOpen] = React.useState(false)
   const [editing, setEditing] = React.useState<Filament | null>(null)
@@ -113,9 +116,16 @@ export default function FilamentiPage() {
   const [orderBy, setOrderBy] = React.useState<FilamentOrderBy | ''>('id')
   const [showFilters, setShowFilters] = React.useState(false)
 
-  const load = () => api.get('/api/v1/filaments/').then((r) => setRows(r.data))
+  const load = async () => {
+    try {
+      const r = await api.get('/api/v1/filaments/')
+      setRows(r.data)
+    } finally {
+      setLoading(false)
+    }
+  }
   const loadLocations = () => api.get('/api/v1/locations/').then((r) => setLocations(r.data))
-  
+
   React.useEffect(() => {
     void load()
     void loadLocations()
@@ -416,6 +426,17 @@ export default function FilamentiPage() {
           </Stack>
         </Collapse>
 
+        {loading ? (
+          <SkeletonTable columns={9} rows={6} />
+        ) : rows.length === 0 ? (
+          <EmptyState
+            icon={<InventoryIcon />}
+            title="Nessun filamento registrato"
+            subtitle="Aggiungi la prima bobina per iniziare a tracciare scorte e consumi."
+            actionLabel={canWrite ? '+ Nuovo filamento' : undefined}
+            onAction={canWrite ? onNew : undefined}
+          />
+        ) : (
         <TableContainer sx={{ maxHeight: { xs: '60vh', md: '520px' }, overflowX: { xs: 'auto', md: 'hidden' }, overflowY: 'auto' }}>
           <Table size="small" stickyHeader sx={{ tableLayout: { xs: 'auto', md: 'fixed' }, width: '100%' }}>
             <TableHead>
@@ -573,6 +594,7 @@ export default function FilamentiPage() {
         </TableBody>
         </Table>
       </TableContainer>
+        )}
       </Paper>
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
